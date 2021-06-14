@@ -1,7 +1,9 @@
+const MAX_WIDTH = window.screen.width;
+
 export function normalizeViewOptions(_options) {
 	const options = {
 		min: 0,
-		max: Infinity,
+		max: MAX_WIDTH,
 		resizable: true
 	};
 
@@ -11,12 +13,12 @@ export function normalizeViewOptions(_options) {
 		resizable: _resizable = options.resizable
 	} = _options;
 
-	if (_min < 0) {
-		throw new TypeError('A min MUST be >= 0.');
+	if (_min < 0 || !isFinite(_min)) {
+		throw new TypeError('A min MUST be >= 0 and finity.');
 	}
 
 	if (_max < _min) {
-		throw new TypeError('A max MUST > a min.');
+		throw new TypeError('A max MUST > the min and finity.');
 	}
 
 	if (typeof _resizable !== 'boolean') {

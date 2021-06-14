@@ -4,6 +4,12 @@ import { terser } from 'rollup-plugin-terser';
 import { eslint } from 'rollup-plugin-eslint';
 
 const MODULE_NAME = 'splitview';
+const BANNER =
+	'/*!\n' +
+	` * Splitview v${require('../package.json').version}\n` +
+	` * (c) 2020-${new Date().getFullYear()} ChaosLee\n` +
+	' * Released under the MIT License.\n' +
+	' */';
 
 const moduleList = [
 	{
@@ -49,7 +55,8 @@ export default moduleList.map(config => {
 		output: {
 			file: config.output,
 			format: config.format,
-			name: config.name
+			name: config.name,
+			banner: BANNER
 		},
 		plugins: pluginList
 	});

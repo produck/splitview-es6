@@ -7,7 +7,7 @@ const HANDLER_SIZE = 4;
 function SUM(ctx, which, getter) {
 	let sum = 0;
 
-	ctx.eachSibling(which, sibling => sum += getter(sibling));
+	ctx.each(which, sibling => sum += getter(sibling));
 
 	return sum;
 }
@@ -41,15 +41,13 @@ export function EndpointView(containerCtx) {
 }
 
 export function SplitviewView(options, containerCtx) {
-	const el = {
-		view: document.createElement('div'),
-		handler: document.createElement('div')
-	};
+	const handlerElement = document.createElement('div');
+	const viewElement = document.createElement('div');
 
-	el.view.className = 'sv-view';
-	el.handler.className = 'sv-handler';
-	utils.setStaticViewOuterStyle(el.view);
-	utils.setStaticHandlerStyle(el.handler);
+	viewElement.className = 'sv-view';
+	handlerElement.className = 'sv-handler';
+	utils.setViewOuterStyle(viewElement);
+	utils.setHandlerStyle(handlerElement);
 
 	function updateViewState(deltaSize, which, state) {
 		const { limit, origin, pulled } = state;
@@ -67,7 +65,7 @@ export function SplitviewView(options, containerCtx) {
 		 * Because number of view changing size a time may be less than last time.
 		 * So use `forEach` not `find`. No need for more optimization.
 		 */
-		pulled.eachSibling(which, ctx => {
+		pulled.each(which, ctx => {
 			const delta = ctx.oldSize - freeDelta > ctx.options.min
 				? freeDelta : ctx.oldSize - ctx.options.min;
 
@@ -79,9 +77,9 @@ export function SplitviewView(options, containerCtx) {
 	function startResize(event) {
 		const initPos = event[containerCtx.axis.pointPos];
 
-		utils.setStyleImportant(document.body, 'cursor', containerCtx.axis.styleCursorValue);
+		utils.setStyle(document.body, { 'cursor': containerCtx.axis.styleCursorValue });
 		ctx.resizing = containerCtx.resizing = true;
-		containerCtx.storeAllViewSize();
+		containerCtx.snapshot();
 
 		const Config = { next: ConfigNext(ctx), prev: ConfigPrev(ctx) };
 
@@ -96,7 +94,7 @@ export function SplitviewView(options, containerCtx) {
 			 * - Restoring sizes of all views every time, avoids creating a dirty state
 			 *   when `which` is reversed causing sizes of last views not be restored.
 			 */
-			containerCtx.restoreAllViewSize();
+			containerCtx.restore();
 
 			if (delta !== 0) {
 				const which = delta > 0 ? 'next' : 'prev';
@@ -109,7 +107,7 @@ export function SplitviewView(options, containerCtx) {
 		window.addEventListener('mouseup', function endResize() {
 			window.removeEventListener('mousemove', updateViewStateWhenMoving);
 			window.removeEventListener('mouseup', endResize);
-			document.body.style.setProperty('cursor', null);
+			utils.setStyle(document.body, { 'cursor': 'default' });
 			ctx.resizing = containerCtx.resizing = false;
 			updateHandlerColor();
 		});
@@ -119,8 +117,10 @@ export function SplitviewView(options, containerCtx) {
 		const thisResizing = ctx.resizing && containerCtx.resizing;
 		const thisReadyToResize = hover && !containerCtx.resizing;
 
-		el.handler.style.backgroundColor =
-			thisResizing || thisReadyToResize ? '#007fd4' : 'transparent';
+		utils.setStyle(handlerElement, {
+			'background-color': thisResizing || thisReadyToResize
+				? '#007fd4' : 'transparent'
+		});
 	}
 
 	function dispatchRequestAdjustment() {
@@ -128,13 +128,13 @@ export function SplitviewView(options, containerCtx) {
 
 		event.container = containerCtx.container;
 		event.view = ctx.view;
-		el.handler.dispatchEvent(event);
+		handlerElement.dispatchEvent(event);
 	}
 
-	el.handler.addEventListener('mousedown', startResize);
-	el.handler.addEventListener('mouseover', () => updateHandlerColor(true));
-	el.handler.addEventListener('mouseout', () => updateHandlerColor(false));
-	el.handler.addEventListener('dblclick', dispatchRequestAdjustment);
+	handlerElement.addEventListener('mousedown', startResize);
+	handlerElement.addEventListener('mouseover', () => updateHandlerColor(true));
+	handlerElement.addEventListener('mouseout', () => updateHandlerColor(false));
+	handlerElement.addEventListener('dblclick', dispatchRequestAdjustment);
 
 	const ctx = {
 		resizing: false,
@@ -142,20 +142,20 @@ export function SplitviewView(options, containerCtx) {
 		prev: null,
 		next: null,
 		get options() { return options; },
-		get viewElement() { return el.view; },
-		get handlerElement() { return el.handler; },
-		get size() { return el.view[containerCtx.axis.offsetSize]; },
-		get offset() { return el.view[containerCtx.axis.offset]; },
+		get viewElement() { return viewElement; },
+		get handlerElement() { return handlerElement; },
+		get size() { return viewElement[containerCtx.axis.offsetSize]; },
+		get offset() { return viewElement[containerCtx.axis.offset]; },
 		set size(value) {
 			if (ctx.size === value) { return; }
 
 			const event = new UIEvent('view-size-change', { detail: ctx.view });
 
-			el.view.style.setProperty(containerCtx.axis.styleSize, `${value}px`);
-			ctx.eachSibling('next', sibling => sibling.fixOffset());
-			el.view.dispatchEvent(event);
+			utils.setStyle(viewElement, { [containerCtx.axis.styleSize]: `${value}px` });
+			ctx.each('next', sibling => sibling.fixOffset());
+			viewElement.dispatchEvent(event);
 		},
-		eachSibling(which, callback) {
+		each(which, callback) {
 			let sibling = ctx[which];
 
 			while (sibling !== null && sibling.next !== null) {
@@ -166,23 +166,28 @@ export function SplitviewView(options, containerCtx) {
 		fixOffset() {
 			const offset = ctx.prev.offset + ctx.prev.size;
 
-			el.view.style.setProperty(containerCtx.axis.styleOffset, `${offset}px`);
-			el.handler.style.setProperty(containerCtx.axis.styleOffset, `${offset - HANDLER_SIZE / 2}px`);
+			utils.setStyle(viewElement, { [containerCtx.axis.styleOffset]: `${offset}px` });
+			utils.setStyle(handlerElement, { [containerCtx.axis.styleOffset]: `${offset - HANDLER_SIZE / 2}px `});
 		},
-		updateLayout() {
-			utils.setStyleImportant(el.view, containerCtx.axis.crossStyleSize, '100%');
-			utils.setStyleImportant(el.view, containerCtx.axis.crossStyleOffset, '0');
+		relayout() {
+			utils.setStyle(viewElement, {
+				[containerCtx.axis.crossStyleSize]: '100%',
+				[containerCtx.axis.crossStyleOffset]: '0'
+			});
 
-			utils.setStyleImportant(el.handler, 'cursor', containerCtx.axis.styleCursorValue);
-			utils.setStyleImportant(el.handler, containerCtx.axis.crossStyleSize, '100%');
-			utils.setStyleImportant(el.handler, containerCtx.axis.crossStyleOffset, '0');
-			utils.setStyleImportant(el.handler, containerCtx.axis.styleSize, `${HANDLER_SIZE}px`);
-			utils.setStyleImportant(el.handler, 'display', ctx.prev.options.resizable ? 'block' : 'none');
+			utils.setStyle(handlerElement, {
+				['cursor']: containerCtx.axis.styleCursorValue,
+				[containerCtx.axis.crossStyleSize]: '100%',
+				[containerCtx.axis.crossStyleOffset]: '0',
+				[containerCtx.axis.styleSize]: `${HANDLER_SIZE}px`,
+				['display']: ctx.prev.options.resizable ? 'block' : 'none'
+			});
+
 			ctx.size = ctx.options.min;
 		},
 		view: Object.seal({
 			get container() { return containerCtx.container; },
-			get element() { return el.view; },
+			get element() { return viewElement; },
 			get previousSibling() { return ctx.prev.view; },
 			get nextSibling() { return ctx.next.view; },
 			get size() { return ctx.size; },
@@ -196,7 +201,7 @@ export function SplitviewView(options, containerCtx) {
 
 				if (delta === 0) return;
 
-				containerCtx.storeAllViewSize();
+				containerCtx.snapshot();
 
 				const deltaSize = Math.abs(delta);
 				const which = delta > 0 ? 'next' : 'prev';

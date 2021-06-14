@@ -1,8 +1,8 @@
-import { SplitviewContainer } from '../index';
+import { Splitview } from '../index';
 
 window.addEventListener('load', function () {
 	const workbenchElement = document.createElement('div');
-	const container = SplitviewContainer();
+	const container = Splitview();
 
 	console.log(window.a = container);
 
@@ -29,6 +29,10 @@ window.addEventListener('load', function () {
 		const view = container.createView(viewOptions);
 
 		container.appendView(view);
+	});
+
+	container.element.addEventListener('container-size-change', function (event) {
+		console.log('container size:', event);
 	});
 
 	container.mount(workbenchElement);

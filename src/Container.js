@@ -3,35 +3,32 @@ import { SplitviewView, EndpointView } from './View';
 import * as utils from './utils';
 
 export function SplitviewContainer() {
-	const el = {
-		container: document.createElement('div'),
-		handlerContainer: document.createElement('div')
-	};
+	const containerElement = document.createElement('div');
+	const handlerContainerElement = document.createElement('div');
 
-	el.container.className = 'sv-container';
-	el.handlerContainer.className = 'sv-handler-container';
-	utils.setStaticContainerStyle(el.container);
-	utils.setStaticHandlerContainerStyle(el.handlerContainer);
-	el.container.appendChild(el.handlerContainer);
+	containerElement.className = 'sv-container';
+	handlerContainerElement.className = 'sv-handler-container';
+	utils.setContainerStyle(containerElement);
+	utils.setHandlerContainerStyle(handlerContainerElement);
+	containerElement.appendChild(handlerContainerElement);
 
 	let debouncer = null;
 
 	function autoAdjustment() {
 		const resizableViewList = [];
 
-		ctx.rearViewCtx.eachSibling('prev', viewCtx => {
+		ctx.rear.each('prev', viewCtx => {
 			if (viewCtx.options.resizable) {
 				resizableViewList.push(viewCtx);
 			}
 		});
 
-		let freeSize = el.container[ctx.axis.offsetSize];
+		let freeSize = containerElement[ctx.axis.offsetSize];
 
-		ctx.headViewCtx.eachSibling('next', viewCtx => freeSize -= viewCtx.size);
+		ctx.head.each('next', viewCtx => freeSize -= viewCtx.size);
 
 		resizableViewList.find(view => {
-			const viewMax = view.options.max;
-			const delta = view.size + freeSize < viewMax ? freeSize : view.options.max - view.size;
+			const delta = view.size + freeSize < view.options.max ? freeSize : view.options.max - view.size;
 
 			view.size += delta;
 			freeSize -= delta;
@@ -39,7 +36,7 @@ export function SplitviewContainer() {
 			return freeSize === 0;
 		});
 
-		ctx.headViewCtx.eachSibling('next', viewCtx => viewCtx.fixOffset());
+		ctx.head.each('next', viewCtx => viewCtx.fixOffset());
 		clearTimeout(debouncer);
 		debouncer = setTimeout(() => freeSize !== 0 && console.warn(`Splitview: free ${freeSize}.`), 1000);
 	}
@@ -48,18 +45,18 @@ export function SplitviewContainer() {
 
 	function observeContainerSize() {
 		const size = {
-			width: el.container.offsetWidth,
-			height: el.container.offsetHeight
+			width: containerElement.offsetWidth,
+			height: containerElement.offsetHeight
 		};
 
 		(function observe() {
-			const width = el.container.offsetWidth;
-			const height = el.container.offsetHeight;
+			const width = containerElement.offsetWidth;
+			const height = containerElement.offsetHeight;
 
 			if (size.width !== width || size.height !== height) {
 				const event = new UIEvent('container-size-change', { detail: ctx.container});
 
-				el.container.dispatchEvent(event);
+				containerElement.dispatchEvent(event);
 			}
 
 			size.width = width;
@@ -72,28 +69,31 @@ export function SplitviewContainer() {
 		cancelAnimationFrame(observer);
 	}
 
-	function updateLayout() {
-		utils.setStyleImportant(el.handlerContainer, ctx.axis.crossStyleSize, '100%');
-		utils.setStyleImportant(el.handlerContainer, ctx.axis.styleSize, '0');
-		ctx.headViewCtx.eachSibling('next', view => view.updateLayout());
+	function relayout() {
+		utils.setStyle(handlerContainerElement, {
+			[ctx.axis.crossStyleSize]: '100%',
+			[ctx.axis.styleSize]: '0'
+		});
+
+		ctx.head.each('next', view => view.relayout());
 		autoAdjustment();
 	}
 
 	function appendViewCtx(viewCtx) {
-		ctx.rearViewCtx.prev.next = viewCtx;
-		viewCtx.prev = ctx.rearViewCtx.prev;
-		viewCtx.next = ctx.rearViewCtx;
-		ctx.rearViewCtx.prev = viewCtx;
-		el.container.appendChild(viewCtx.viewElement);
-		el.handlerContainer.appendChild(viewCtx.handlerElement);
+		ctx.rear.prev.next = viewCtx;
+		viewCtx.prev = ctx.rear.prev;
+		viewCtx.next = ctx.rear;
+		ctx.rear.prev = viewCtx;
+		containerElement.appendChild(viewCtx.viewElement);
+		handlerContainerElement.appendChild(viewCtx.handlerElement);
 	}
 
 	function removeViewCtx(viewCtx) {
 		viewCtx.prev.next = viewCtx.next;
 		viewCtx.next.prev = viewCtx.prev;
 		viewCtx.next = viewCtx.prev = null;
-		el.container.removeChild(viewCtx.viewElement);
-		el.handlerContainer.removeChild(viewCtx.handlerElement);
+		containerElement.removeChild(viewCtx.viewElement);
+		handlerContainerElement.removeChild(viewCtx.handlerElement);
 	}
 
 	const viewWeakMap = new WeakMap();
@@ -102,13 +102,13 @@ export function SplitviewContainer() {
 		resizing: false,
 		axis: utils.AXIS_MAP.row,
 		direction: 'row',
-		headViewCtx: null,
-		rearViewCtx: null,
-		storeAllViewSize() {
-			ctx.headViewCtx.eachSibling('next', ctx => ctx.oldSize = ctx.size);
+		head: null,
+		rear: null,
+		snapshot() {
+			ctx.head.each('next', ctx => ctx.oldSize = ctx.size);
 		},
-		restoreAllViewSize() {
-			ctx.headViewCtx.eachSibling('next', ctx => ctx.size = ctx.oldSize);
+		restore() {
+			ctx.head.each('next', ctx => ctx.size = ctx.oldSize);
 		},
 		container: Object.seal({
 			/**
@@ -120,42 +120,41 @@ export function SplitviewContainer() {
 				}
 
 				ctx.direction = value;
-				ctx.symbol = utils.AXIS_MAP[value];
-				updateLayout();
+				ctx.axis = utils.AXIS_MAP[value];
+				relayout();
 			},
 			get direction() { return ctx.direction; },
-			get firstView() { return ctx.headViewCtx.next.view; },
-			get lastView() { return ctx.rearViewCtx.prev.view; },
+			get element() { return containerElement; },
+			get firstView() { return ctx.head.next.view; },
+			get lastView() { return ctx.rear.prev.view; },
 			get viewList() {
 				const list = [];
 
-				ctx.headViewCtx.eachSibling('next', viewCtx => list.push(viewCtx.view));
+				ctx.head.each('next', viewCtx => list.push(viewCtx.view));
 
 				return list;
 			},
 			mount(element) {
-				element.appendChild(el.container);
-				updateLayout();
+				element.appendChild(containerElement);
+				relayout();
 
 				observeContainerSize();
 				window.addEventListener('resize', autoAdjustment);
 			},
 			destroy() {
-				el.container.parentElement.removeChild(el.container);
+				containerElement.parentElement.removeChild(containerElement);
 
 				cancelObserveConatinerSize();
 				window.removeEventListener('resize', autoAdjustment);
 			},
-			relayout() {
-				updateLayout();
-			},
+			relayout,
 			appendView(view) {
 				if (view.container !== ctx.container) {
 					throw new Error('The view does NOT belongs to this container.');
 				}
 
 				appendViewCtx(viewWeakMap.get(view));
-				updateLayout();
+				relayout();
 
 				return view;
 			},
@@ -171,7 +170,7 @@ export function SplitviewContainer() {
 				}
 
 				removeViewCtx(viewCtx);
-				updateLayout();
+				relayout();
 
 				return view;
 			},
@@ -199,11 +198,11 @@ export function SplitviewContainer() {
 					referenceViewCtx.prev.next = newViewCtx;
 					referenceViewCtx.prev = newViewCtx;
 
-					el.container.insertBefore(newViewCtx.viewElement, referenceViewCtx.viewElement);
-					el.handlerContainer.insertBefore(newViewCtx.handlerElement, referenceViewCtx.handlerElement);
+					containerElement.insertBefore(newViewCtx.viewElement, referenceViewCtx.viewElement);
+					handlerContainerElement.insertBefore(newViewCtx.handlerElement, referenceViewCtx.handlerElement);
 				}
 
-				updateLayout();
+				relayout();
 
 				return newView;
 			},
@@ -217,10 +216,10 @@ export function SplitviewContainer() {
 		})
 	};
 
-	ctx.headViewCtx = EndpointView(ctx);
-	ctx.rearViewCtx = EndpointView(ctx);
-	ctx.headViewCtx.next = ctx.rearViewCtx;
-	ctx.rearViewCtx.prev = ctx.headViewCtx;
+	ctx.head = EndpointView(ctx);
+	ctx.rear = EndpointView(ctx);
+	ctx.head.next = ctx.rear;
+	ctx.rear.prev = ctx.head;
 
 	return ctx.container;
 }

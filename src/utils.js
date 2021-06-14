@@ -31,47 +31,37 @@ export const FIXED_HANDLER_STYLE = {
 	'position': 'absolute',
 	'transition-property': 'background-color',
 	'transition-duration': '0.2s',
-	'transition-delay': '0.1s'
+	'transition-delay': '0.1s',
+	'user-select': 'none'
 };
 
 /**
- *
  * @param {HTMLDivElement} element
  */
-function setStaticStyle(element, style) {
+export function setStyle(element, style) {
 	for (const property in style) {
 		element.style.setProperty(property, style[property], 'important');
 	}
 }
 
-export function setStaticContainerStyle(element) {
-	setStaticStyle(element, FIXED_CONTAINER_STYLE);
+export function setContainerStyle(element) {
+	setStyle(element, FIXED_CONTAINER_STYLE);
 }
 
-export function setStaticViewOuterStyle(element) {
-	setStaticStyle(element, FIXED_VIEW_OUTER_STYLE);
+export function setViewOuterStyle(element) {
+	setStyle(element, FIXED_VIEW_OUTER_STYLE);
 }
 
-export function setStaticHandlerContainerStyle(element) {
-	setStaticStyle(element, FIXED_HANDLER_CONTAINER_STYLE);
+export function setHandlerContainerStyle(element) {
+	setStyle(element, FIXED_HANDLER_CONTAINER_STYLE);
 }
 
-export function setStaticHandlerStyle(element) {
-	setStaticStyle(element, FIXED_HANDLER_STYLE);
+export function setHandlerStyle(element) {
+	setStyle(element, FIXED_HANDLER_STYLE);
 }
 
-/**
- *
- * @param {HTMLDivElement} element
- * @param {string} key
- * @param {string} value
- */
-export function setStyleImportant(element, property, value) {
-	element.style.setProperty(property, value, 'important');
-}
-
-export const AXIS_MAP = Object.freeze({
-	row: Object.freeze({
+export const AXIS_MAP = {
+	row: {
 		pointPos: 'clientX',
 		crossStyleSize: 'height',
 		crossStyleOffset: 'top',
@@ -80,8 +70,8 @@ export const AXIS_MAP = Object.freeze({
 		offsetSize: 'offsetWidth',
 		offset: 'offsetLeft',
 		styleCursorValue: 'col-resize'
-	}),
-	column: Object.freeze({
+	},
+	column: {
 		pointPos: 'clientY',
 		crossStyleSize: 'width',
 		crossStyleOffset: 'left',
@@ -90,5 +80,5 @@ export const AXIS_MAP = Object.freeze({
 		offsetSize: 'offsetHeight',
 		offset: 'offsetTop',
 		styleCursorValue: 'row-resize'
-	}),
-});
+	},
+};
