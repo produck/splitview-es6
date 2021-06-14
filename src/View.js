@@ -40,7 +40,7 @@ export function EndpointView(containerCtx) {
 	return endpointViewCtx;
 }
 
-export default function SplitviewView(options, containerCtx) {
+export function SplitviewView(options, containerCtx) {
 	const el = {
 		view: document.createElement('div'),
 		handler: document.createElement('div')

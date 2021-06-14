@@ -14,7 +14,8 @@ interface SplitviewView {
 	setSize(value: number): number;
 }
 
-interface SplitviewContainer {
+export interface SplitviewContainer {
+	(): SplitviewContainer;
 	direction: string;
 	readonly firstView: SplitviewView;
 	readonly lastView: SplitviewView;
@@ -28,8 +29,4 @@ interface SplitviewContainer {
 	mount(element: HTMLElement): void;
 	relayout(): void;
 	destroy(): void;
-}
-
-export default interface SplitviewContainerConstructor {
-	(): SplitviewContainer;
 }

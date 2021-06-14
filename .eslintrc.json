@@ -1,11 +1,12 @@
 {
 	"env": {
+		"node": true,
 		"browser": true,
-		"es2021": true
+		"es6": true
 	},
 	"extends": "eslint:recommended",
 	"parserOptions": {
-		"ecmaVersion": 12,
+		"ecmaVersion": 8,
 		"sourceType": "module"
 	},
 	"rules": {
@@ -25,5 +26,6 @@
 			"error",
 			"always"
 		]
-	}
+	},
+	"ignorePatterns": "dist"
 }

@@ -4,8 +4,14 @@
   "description": "A splitview implement by only javascript without css and no fortend framework being dependent.",
   "main": "index.js",
   "scripts": {
+    "build": "rollup --config",
+		"dev": "rollup --config script/rollup.config.dev.js --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "files": [
+    "/index.d.ts",
+    "/dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/produck/splitview-es6.git"
@@ -20,7 +26,12 @@
   },
   "homepage": "https://github.com/produck/splitview-es6#readme",
   "devDependencies": {
+    "@rollup/plugin-html": "^0.2.3",
+    "cross-env": "^7.0.3",
     "eslint": "^7.28.0",
-    "rollup": "^2.51.1"
+    "rollup": "^2.51.1",
+    "rollup-plugin-eslint": "^7.0.0",
+    "rollup-plugin-serve": "^1.1.0",
+    "rollup-plugin-terser": "^7.0.2"
   }
 }

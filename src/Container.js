@@ -1,8 +1,8 @@
 import { normalizeViewOptions } from './normalize';
-import SplitviewView, { EndpointView } from './View';
+import { SplitviewView, EndpointView } from './View';
 import * as utils from './utils';
 
-export default function SplitviewContainer() {
+export function SplitviewContainer() {
 	const el = {
 		container: document.createElement('div'),
 		handlerContainer: document.createElement('div')
