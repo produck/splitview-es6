@@ -193,7 +193,7 @@ export function SplitviewView(options, containerCtx) {
 			get size() { return ctx.size; },
 			setSize(value) {
 				if (typeof value !== 'number') {
-					throw new TypeError('A view size MUST be a number.');
+					throw new Error('A view size MUST be a number.');
 				}
 
 				const finalValue = Math.max(Math.min(value, ctx.options.max), ctx.options.min);

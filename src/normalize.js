@@ -14,15 +14,15 @@ export function normalizeViewOptions(_options) {
 	} = _options;
 
 	if (_min < 0 || !isFinite(_min)) {
-		throw new TypeError('A min MUST be >= 0 and finity.');
+		throw new Error('A min MUST be >= 0 and finity.');
 	}
 
 	if (_max < _min) {
-		throw new TypeError('A max MUST > the min and finity.');
+		throw new Error('A max MUST > the min and finity.');
 	}
 
 	if (typeof _resizable !== 'boolean') {
-		throw new TypeError('A resizable MUST be a boolean');
+		throw new Error('A resizable MUST be a boolean');
 	}
 
 	options.resizable = _resizable;

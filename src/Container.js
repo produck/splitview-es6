@@ -96,6 +96,12 @@ export function SplitviewContainer() {
 		handlerContainerElement.removeChild(viewCtx.handlerElement);
 	}
 
+	function assertOwned(view) {
+		if (view.container !== ctx.container) {
+			throw new Error('The view does NOT belongs to this container.');
+		}
+	}
+
 	const viewWeakMap = new WeakMap();
 
 	const ctx = {
@@ -116,7 +122,7 @@ export function SplitviewContainer() {
 			 */
 			set direction(value) {
 				if (value !== 'row' && value !== 'column') {
-					throw new TypeError('A direction MUST be `row` or `column`.');
+					throw new Error('A direction MUST be `row` or `column`.');
 				}
 
 				ctx.direction = value;
@@ -149,19 +155,14 @@ export function SplitviewContainer() {
 			},
 			relayout,
 			appendView(view) {
-				if (view.container !== ctx.container) {
-					throw new Error('The view does NOT belongs to this container.');
-				}
-
+				assertOwned(view);
 				appendViewCtx(viewWeakMap.get(view));
 				relayout();
 
 				return view;
 			},
 			removeView(view) {
-				if (view.container !== ctx.container) {
-					throw new Error('The view does NOT belongs to this container.');
-				}
+				assertOwned(view);
 
 				const viewCtx = viewWeakMap.get(view);
 
@@ -175,9 +176,7 @@ export function SplitviewContainer() {
 				return view;
 			},
 			insertBefore(newView, referenceView = null) {
-				if (newView.container !== ctx.container) {
-					throw new Error('The new view does NOT belongs to this container.');
-				}
+				assertOwned(newView);
 
 				if (referenceView === null) {
 					appendViewCtx(viewWeakMap.get(referenceView));
