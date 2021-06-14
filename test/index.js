@@ -25,10 +25,11 @@ window.addEventListener('load', function () {
 		{ name: 'feature-panel-1', resizable: true, max: 400, min: 0 },
 		{ name: 'feature-panel-2', resizable: true, max: 300, min: 50 },
 		{ name: 'desktop', resizable: true, max: 500, min: 200 }
-	].forEach(viewOptions => {
+	].forEach((viewOptions, index) => {
 		const view = container.createView(viewOptions);
 
 		container.appendView(view);
+		view.element.addEventListener('view-size-change', event => console.log(event, viewOptions, index));
 	});
 
 	container.element.addEventListener('container-size-change', function (event) {

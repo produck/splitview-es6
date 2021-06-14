@@ -134,14 +134,14 @@ export interface SplitviewContainer {
 	mount(element: HTMLElement): void;
 
 	/**
-	 * The final way for manually resetting the layout. Not recommanded.
-	 */
-	relayout(): void;
-
-	/**
 	 * Removing from parent element and stoping container size observer.
 	 */
 	destroy(): void;
+
+	/**
+	 * The final way for manually resetting the layout. Not recommanded.
+	 */
+	relayout(): void;
 }
 
 export function Splitview(): SplitviewContainer;
