@@ -62,23 +62,23 @@ export function setHandlerStyle(element) {
 
 export const AXIS_MAP = {
 	row: {
-		pointPos: 'clientX',
-		crossStyleSize: 'height',
-		crossStyleOffset: 'top',
-		styleSize: 'width',
-		styleOffset: 'left',
-		offsetSize: 'offsetWidth',
-		offset: 'offsetLeft',
-		styleCursorValue: 'col-resize'
+		p: 'clientX', // position
+		cSS: 'height', // cross-style-size
+		cSO: 'top', // cross-style-offset
+		sS: 'width', // style-size
+		sO: 'left', // style-offset
+		oS: 'offsetWidth', // offset-size
+		o: 'offsetLeft', // offset
+		sCV: 'col-resize' // style-cursor-value
 	},
 	column: {
-		pointPos: 'clientY',
-		crossStyleSize: 'width',
-		crossStyleOffset: 'left',
-		styleSize: 'height',
-		styleOffset: 'top',
-		offsetSize: 'offsetHeight',
-		offset: 'offsetTop',
-		styleCursorValue: 'row-resize'
+		p: 'clientY',
+		cSS: 'width',
+		cSO: 'left',
+		sS: 'height',
+		sO: 'top',
+		oS: 'offsetHeight',
+		o: 'offsetTop',
+		sCV: 'row-resize'
 	},
 };

@@ -12,33 +12,30 @@ export function SplitviewContainer() {
 	utils.setHandlerContainerStyle(handlerContainerElement);
 	containerElement.appendChild(handlerContainerElement);
 
-	let debouncer = null;
-
 	function autoAdjustment() {
 		const resizableViewList = [];
+		const unresizableViewList = [];
 
-		ctx.rear.each('prev', viewCtx => {
-			if (viewCtx.options.resizable) {
-				resizableViewList.push(viewCtx);
+		ctx.head.each('next', viewCtx => (viewCtx.resizable
+			? resizableViewList : unresizableViewList).push(viewCtx));
+
+		const totalMax = resizableViewList.reduce((sum, view) => sum + view.max, 0);
+		const freeSize = containerElement[ctx.axis.oS] - unresizableViewList.reduce((sum, view) => sum + view.size, 0);
+		let usedSize = 0;
+
+		resizableViewList.forEach((viewCtx, index) => {
+			if (index === resizableViewList.length - 1) {
+				viewCtx.size = freeSize - usedSize;
+				console.log(freeSize - usedSize);
+			} else {
+				const size = Math.round(viewCtx.max / totalMax * freeSize);
+
+				viewCtx.size = size;
+				usedSize += size;
 			}
 		});
 
-		let freeSize = containerElement[ctx.axis.offsetSize];
-
-		ctx.head.each('next', viewCtx => freeSize -= viewCtx.size);
-
-		resizableViewList.find(view => {
-			const delta = view.size + freeSize < view.options.max ? freeSize : view.options.max - view.size;
-
-			view.size += delta;
-			freeSize -= delta;
-
-			return freeSize === 0;
-		});
-
 		ctx.head.each('next', viewCtx => viewCtx.fixOffset());
-		clearTimeout(debouncer);
-		debouncer = setTimeout(() => freeSize !== 0 && console.warn(`Splitview: free ${freeSize}.`), 1000);
 	}
 
 	let observer = null;
@@ -71,8 +68,8 @@ export function SplitviewContainer() {
 
 	function relayout() {
 		utils.setStyle(handlerContainerElement, {
-			[ctx.axis.crossStyleSize]: '100%',
-			[ctx.axis.styleSize]: '0'
+			[ctx.axis.cSS]: '100%',
+			[ctx.axis.sS]: '0'
 		});
 
 		ctx.head.each('next', view => view.relayout());
@@ -111,10 +108,10 @@ export function SplitviewContainer() {
 		head: null,
 		rear: null,
 		snapshot() {
-			ctx.head.each('next', ctx => ctx.oldSize = ctx.size);
+			ctx.head.each('next', ctx => ctx._size = ctx.size);
 		},
 		restore() {
-			ctx.head.each('next', ctx => ctx.size = ctx.oldSize);
+			ctx.head.each('next', ctx => ctx.size = ctx._size);
 		},
 		container: Object.seal({
 			/**

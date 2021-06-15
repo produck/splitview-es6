@@ -29,7 +29,8 @@ window.addEventListener('load', function () {
 		const view = container.createView(viewOptions);
 
 		container.appendView(view);
-		view.element.addEventListener('view-size-change', event => console.log(event, viewOptions, index));
+		index;
+		// view.element.addEventListener('view-size-change', event => console.log(event, viewOptions, index));
 	});
 
 	container.element.addEventListener('container-size-change', function (event) {

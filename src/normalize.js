@@ -1,8 +1,8 @@
-const MAX_WIDTH = window.screen.width;
+const MAX_WIDTH = window.screen.width * 4;
 
 export function normalizeViewOptions(_options) {
 	const options = {
-		min: 0,
+		min: 50,
 		max: MAX_WIDTH,
 		resizable: true
 	};
