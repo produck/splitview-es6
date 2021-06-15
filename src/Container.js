@@ -13,29 +13,26 @@ export function SplitviewContainer() {
 	containerElement.appendChild(handlerContainerElement);
 
 	function autoAdjustment() {
-		const resizableViewList = [];
-		const unresizableViewList = [];
+		const viewCtxList = [];
+		const SUM_MAX = (sum, view) => sum + view.max;
 
-		ctx.head.each('next', viewCtx => (viewCtx.resizable
-			? resizableViewList : unresizableViewList).push(viewCtx));
-
-		const totalMax = resizableViewList.reduce((sum, view) => sum + view.max, 0);
-		const freeSize = containerElement[ctx.axis.oS] - unresizableViewList.reduce((sum, view) => sum + view.size, 0);
-		let usedSize = 0;
-
-		resizableViewList.forEach((viewCtx, index) => {
-			if (index === resizableViewList.length - 1) {
-				viewCtx.size = freeSize - usedSize;
-				console.log(freeSize - usedSize);
-			} else {
-				const size = Math.round(viewCtx.max / totalMax * freeSize);
-
-				viewCtx.size = size;
-				usedSize += size;
-			}
+		ctx.head.each('next', viewCtx => viewCtxList.push(viewCtx));
+		viewCtxList.sort((viewCtxA, viewCtxB) => {
+			return (viewCtxA.max - viewCtxA.min) - (viewCtxB.max - viewCtxB.min);
 		});
 
+		const finalFreeSize = viewCtxList.reduce((freeSize, viewCtx, index) => {
+			const totalMax = viewCtxList.slice(index).reduce(SUM_MAX, 0);
+			const targetSize = Math.round(viewCtx.max / totalMax * freeSize);
+			const size = targetSize >= viewCtx.min ? targetSize : viewCtx.min;
+
+			viewCtx.size = size;
+
+			return freeSize - size;
+		}, containerElement[ctx.axis.oS]);
+
 		ctx.head.each('next', viewCtx => viewCtx.fixOffset());
+		console.log(finalFreeSize, containerElement[ctx.axis.oS]);
 	}
 
 	let observer = null;
@@ -67,13 +64,15 @@ export function SplitviewContainer() {
 	}
 
 	function relayout() {
-		utils.setStyle(handlerContainerElement, {
-			[ctx.axis.cSS]: '100%',
-			[ctx.axis.sS]: '0'
-		});
+		if (containerElement.parentElement !== null) {
+			utils.setStyle(handlerContainerElement, {
+				[ctx.axis.cSS]: '100%',
+				[ctx.axis.sS]: '0'
+			});
 
-		ctx.head.each('next', view => view.relayout());
-		autoAdjustment();
+			ctx.head.each('next', view => view.relayout());
+			autoAdjustment();
+		}
 	}
 
 	function appendViewCtx(viewCtx) {

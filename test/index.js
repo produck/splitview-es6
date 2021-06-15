@@ -20,11 +20,14 @@ window.addEventListener('load', function () {
 	document.head.appendChild(style);
 
 	[
-		{ name: 'feature-button', resizable: false, min: 48, max: 48 },
-		{ name: 'feature-panel-0', resizable: true, min: 50 },
-		{ name: 'feature-panel-1', resizable: true, max: 400, min: 0 },
-		{ name: 'feature-panel-2', resizable: true, max: 300, min: 50 },
-		{ name: 'desktop', resizable: true, max: 500, min: 200 }
+		{ name: 'feature-button', min: 48, max: 48 },
+		{ name: 'feature-panel-0', min: 50 },
+		// { name: 'feature-panel-0', min: 50 },
+		// { name: 'feature-panel-0', min: 50 },
+		// { name: 'feature-panel-0', min: 50 },
+		{ name: 'feature-panel-1', max: 400, min: 0 },
+		{ name: 'feature-panel-2', max: 300, min: 50 },
+		{ name: 'desktop', max: 500, min: 200 }
 	].forEach((viewOptions, index) => {
 		const view = container.createView(viewOptions);
 

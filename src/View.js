@@ -29,10 +29,7 @@ function ConfigPrev(ctx) {
 }
 
 export function EndpointView(containerCtx) {
-	const protoView = SplitviewView({
-		resizable: false, init: 0, max: 0, min: 0
-	}, containerCtx);
-
+	const protoView = SplitviewView({ max: 0, min: 0 }, containerCtx);
 	const endpointViewCtx = new Object(protoView);
 
 	endpointViewCtx.view = null;
@@ -140,7 +137,7 @@ export function SplitviewView(options, containerCtx) {
 		next: null,
 		get min() { return options.min; },
 		get max() { return options.max; },
-		get resizable() { return options.resizable; },
+		get resizable() { return options.max !== options.min; },
 		get eView() { return viewElement; },
 		get eHandler() { return handlerElement; },
 		get size() { return viewElement[containerCtx.axis.oS]; },
@@ -163,14 +160,14 @@ export function SplitviewView(options, containerCtx) {
 			}
 		},
 		fixOffset() {
-			const o = ctx.prev.o + ctx.prev.size;
+			const offset = ctx.prev.o + ctx.prev.size;
 
 			utils.setStyle(viewElement, {
-				[containerCtx.axis.sO]: `${o}px`
+				[containerCtx.axis.sO]: `${offset}px`
 			});
 
 			utils.setStyle(handlerElement, {
-				[containerCtx.axis.sO]: `${o - HANDLER_SIZE / 2}px `
+				[containerCtx.axis.sO]: `${offset - HANDLER_SIZE / 2}px `
 			});
 		},
 		relayout() {
