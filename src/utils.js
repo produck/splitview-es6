@@ -35,6 +35,33 @@ export const FIXED_HANDLER_STYLE = {
 	'user-select': 'none'
 };
 
+export const win = window;
+export const doc = document;
+
+export function createDivElement() {
+	return doc.createElement('div');
+}
+
+export function setClassName(element, value) {
+	element.className = value;
+}
+
+export function addEventListener(element, eventType, listener) {
+	element.addEventListener(eventType, listener);
+}
+
+export function removeEventListener(element, eventType, listener) {
+	element.removeEventListener(eventType, listener);
+}
+
+export function SplitviewEvent(type, data) {
+	const event = new Event(type, { bubbles: true });
+
+	event.data = data;
+
+	return event;
+}
+
 /**
  * @param {HTMLDivElement} element
  */

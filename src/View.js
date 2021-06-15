@@ -41,11 +41,11 @@ export function EndpointView(containerCtx) {
 }
 
 export function SplitviewView(options, containerCtx) {
-	const handlerElement = document.createElement('div');
-	const viewElement = document.createElement('div');
+	const handlerElement = utils.createDivElement();
+	const viewElement = utils.createDivElement();
 
-	viewElement.className = 'sv-view';
-	handlerElement.className = 'sv-handler';
+	utils.setClassName(viewElement, 'sv-view');
+	utils.setClassName(handlerElement, 'sv-handler');
 	utils.setViewOuterStyle(viewElement);
 	utils.setHandlerStyle(handlerElement);
 
@@ -77,7 +77,7 @@ export function SplitviewView(options, containerCtx) {
 	function startResize(event) {
 		const initPos = event[containerCtx.axis.p];
 
-		utils.setStyle(document.body, { 'cursor': containerCtx.axis.sCV });
+		utils.setStyle(utils.doc.body, { 'cursor': containerCtx.axis.sCV });
 		ctx.resizing = containerCtx.resizing = true;
 		containerCtx.snapshot();
 
@@ -103,11 +103,11 @@ export function SplitviewView(options, containerCtx) {
 			}
 		}
 
-		window.addEventListener('mousemove', updateViewStateWhenMoving);
-		window.addEventListener('mouseup', function endResize() {
-			window.removeEventListener('mousemove', updateViewStateWhenMoving);
-			window.removeEventListener('mouseup', endResize);
-			utils.setStyle(document.body, { 'cursor': 'default' });
+		utils.addEventListener(utils.win, 'mousemove', updateViewStateWhenMoving);
+		utils.addEventListener(utils.win, 'mouseup', function endResize() {
+			utils.removeEventListener(utils.win, 'mousemove', updateViewStateWhenMoving);
+			utils.removeEventListener(utils.win, 'mouseup', endResize);
+			utils.setStyle(utils.doc.body, { 'cursor': 'default' });
 			ctx.resizing = containerCtx.resizing = false;
 			updateHandlerColor();
 		});
@@ -118,22 +118,20 @@ export function SplitviewView(options, containerCtx) {
 		const ready = hover && !containerCtx.resizing;
 
 		utils.setStyle(handlerElement, {
-			'background-color': resizing || ready ? '#007fd4' : 'transparent'
+			'background-color': resizing || ready ? '#007fd4' : null
 		});
 	}
 
 	function dispatchRequestAdjustment() {
-		const event = new Event('request-resize', { bubbles: true });
+		const event = utils.SplitviewEvent('request-resize', ctx.view);
 
-		event.container = containerCtx.container;
-		event.view = ctx.view;
 		handlerElement.dispatchEvent(event);
 	}
 
-	handlerElement.addEventListener('mousedown', startResize);
-	handlerElement.addEventListener('mouseover', () => updateHandlerColor(true));
-	handlerElement.addEventListener('mouseout', () => updateHandlerColor(false));
-	handlerElement.addEventListener('dblclick', dispatchRequestAdjustment);
+	utils.addEventListener(handlerElement, 'mousedown', startResize);
+	utils.addEventListener(handlerElement, 'mouseover', () => updateHandlerColor(true));
+	utils.addEventListener(handlerElement, 'mouseout', () => updateHandlerColor(false));
+	utils.addEventListener(handlerElement, 'dblclick', dispatchRequestAdjustment);
 
 	const ctx = {
 		resizing: false,
@@ -143,14 +141,14 @@ export function SplitviewView(options, containerCtx) {
 		get min() { return options.min; },
 		get max() { return options.max; },
 		get resizable() { return options.resizable; },
-		get viewElement() { return viewElement; },
-		get handlerElement() { return handlerElement; },
+		get eView() { return viewElement; },
+		get eHandler() { return handlerElement; },
 		get size() { return viewElement[containerCtx.axis.oS]; },
 		get o() { return viewElement[containerCtx.axis.o]; },
 		set size(value) {
 			if (ctx.size === value) { return; }
 
-			const event = new UIEvent('view-size-change', { detail: ctx.view });
+			const event = utils.SplitviewEvent('view-size-change', ctx.view);
 
 			utils.setStyle(viewElement, { [containerCtx.axis.sS]: `${value}px` });
 			ctx.each('next', sibling => sibling.fixOffset());

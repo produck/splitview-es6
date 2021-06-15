@@ -3,11 +3,11 @@ import { SplitviewView, EndpointView } from './View';
 import * as utils from './utils';
 
 export function SplitviewContainer() {
-	const containerElement = document.createElement('div');
-	const handlerContainerElement = document.createElement('div');
+	const containerElement = utils.createDivElement();
+	const handlerContainerElement = utils.createDivElement();
 
-	containerElement.className = 'sv-container';
-	handlerContainerElement.className = 'sv-handler-container';
+	utils.setClassName(containerElement, 'sv-container');
+	utils.setClassName(handlerContainerElement, 'sv-handler-container');
 	utils.setContainerStyle(containerElement);
 	utils.setHandlerContainerStyle(handlerContainerElement);
 	containerElement.appendChild(handlerContainerElement);
@@ -51,14 +51,14 @@ export function SplitviewContainer() {
 			const height = containerElement.offsetHeight;
 
 			if (size.width !== width || size.height !== height) {
-				const event = new UIEvent('container-size-change', { detail: ctx.container});
+				const event = utils.SplitviewEvent('container-size-change', ctx.container);
 
 				containerElement.dispatchEvent(event);
 			}
 
 			size.width = width;
 			size.height = height;
-			observer = window.requestAnimationFrame(observe);
+			observer = utils.win.requestAnimationFrame(observe);
 		}());
 	}
 
@@ -81,16 +81,16 @@ export function SplitviewContainer() {
 		viewCtx.prev = ctx.rear.prev;
 		viewCtx.next = ctx.rear;
 		ctx.rear.prev = viewCtx;
-		containerElement.appendChild(viewCtx.viewElement);
-		handlerContainerElement.appendChild(viewCtx.handlerElement);
+		containerElement.appendChild(viewCtx.eView);
+		handlerContainerElement.appendChild(viewCtx.eHandler);
 	}
 
 	function removeViewCtx(viewCtx) {
 		viewCtx.prev.next = viewCtx.next;
 		viewCtx.next.prev = viewCtx.prev;
 		viewCtx.next = viewCtx.prev = null;
-		containerElement.removeChild(viewCtx.viewElement);
-		handlerContainerElement.removeChild(viewCtx.handlerElement);
+		containerElement.removeChild(viewCtx.eView);
+		handlerContainerElement.removeChild(viewCtx.eHandler);
 	}
 
 	function assertOwned(view) {
@@ -142,13 +142,13 @@ export function SplitviewContainer() {
 				relayout();
 
 				observeContainerSize();
-				window.addEventListener('resize', autoAdjustment);
+				utils.addEventListener(utils.win, 'resize', autoAdjustment);
 			},
 			destroy() {
 				containerElement.parentElement.removeChild(containerElement);
 
 				cancelObserveConatinerSize();
-				window.removeEventListener('resize', autoAdjustment);
+				utils.removeEventListener(utils.win, 'resize', autoAdjustment);
 			},
 			relayout,
 			appendView(view) {
@@ -194,8 +194,8 @@ export function SplitviewContainer() {
 					referenceViewCtx.prev.next = newViewCtx;
 					referenceViewCtx.prev = newViewCtx;
 
-					containerElement.insertBefore(newViewCtx.viewElement, referenceViewCtx.viewElement);
-					handlerContainerElement.insertBefore(newViewCtx.handlerElement, referenceViewCtx.handlerElement);
+					containerElement.insertBefore(newViewCtx.eView, referenceViewCtx.eView);
+					handlerContainerElement.insertBefore(newViewCtx.eHandler, referenceViewCtx.eHandler);
 				}
 
 				relayout();
