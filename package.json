@@ -8,6 +8,7 @@
 		"build": "npm run clean && rollup --config script/rollup.config.js",
 		"dev": "rollup --config script/rollup.config.dev.js --watch",
 		"prepublish": "npm run build",
+		"postpack": "npm run build",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"files": [
@@ -33,7 +34,7 @@
 		"@rollup/plugin-html": "^0.2.3",
 		"cross-env": "^7.0.3",
 		"eslint": "^7.28.0",
-		"rollup": "^2.51.2",
+		"rollup": "^2.52.0",
 		"rollup-plugin-eslint": "^7.0.0",
 		"rollup-plugin-livereload": "^2.0.0",
 		"rollup-plugin-serve": "^1.1.0",

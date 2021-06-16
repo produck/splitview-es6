@@ -113,9 +113,14 @@ export function SplitviewView(options, containerCtx) {
 	function updateHandlerColor(hover) {
 		const resizing = ctx.resizing && containerCtx.resizing;
 		const ready = hover && !containerCtx.resizing;
+		const highlight = resizing || ready;
 
-		utils.setStyle(handlerElement, {
-			'background-color': resizing || ready ? '#007fd4' : null
+		utils.setStyle(handlerElement, highlight ? {
+			'background-color': '#007fd4',
+			'cursor': containerCtx.axis.sCV,
+		} : {
+			'background-color': null,
+			'cursor': 'default',
 		});
 	}
 
@@ -177,7 +182,6 @@ export function SplitviewView(options, containerCtx) {
 			});
 
 			utils.setStyle(handlerElement, {
-				['cursor']: containerCtx.axis.sCV,
 				[containerCtx.axis.cSS]: '100%',
 				[containerCtx.axis.cSO]: '0',
 				[containerCtx.axis.sS]: `${HANDLER_SIZE}px`,
