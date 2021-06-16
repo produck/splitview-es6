@@ -141,4 +141,4 @@ export interface SplitviewContainer {
 	relayout(): void;
 }
 
-export function Splitview(): SplitviewContainer;
+export function Container(): SplitviewContainer;

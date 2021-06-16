@@ -1,13 +1,13 @@
-import { Splitview } from '../index';
+import { Container } from '../index';
 
 window.addEventListener('load', function () {
 	const workbenchElement = document.createElement('div');
-	const container = Splitview();
+	const container = Container();
 
 	console.log(window.a = container);
 
 	document.body.appendChild(workbenchElement);
-	workbenchElement.id = '#app-workbench';
+	workbenchElement.id = 'app-workbench';
 	workbenchElement.style.setProperty('position', 'fixed');
 	workbenchElement.style.setProperty('top', '0');
 	workbenchElement.style.setProperty('left', '0');

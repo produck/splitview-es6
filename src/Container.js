@@ -58,6 +58,7 @@ export function SplitviewContainer() {
 			if (size.width !== width || size.height !== height) {
 				const event = utils.SplitviewEvent('container-size-change', ctx.container);
 
+				autoAdjustment();
 				containerElement.dispatchEvent(event);
 			}
 
@@ -152,15 +153,11 @@ export function SplitviewContainer() {
 			mount(element) {
 				element.appendChild(containerElement);
 				relayout();
-
 				observeContainerSize();
-				utils.addEventListener(utils.win, 'resize', autoAdjustment);
 			},
 			destroy() {
 				containerElement.parentElement.removeChild(containerElement);
-
 				cancelObserveConatinerSize();
-				utils.removeEventListener(utils.win, 'resize', autoAdjustment);
 			},
 			relayout,
 			appendView(view) {
@@ -214,7 +211,11 @@ export function SplitviewContainer() {
 
 				return newView;
 			},
-			createView(options) {
+			createView(options = {}) {
+				if (typeof options !== 'object') {
+					throw new Error('An options MUST be an object.');
+				}
+
 				const viewCtx = SplitviewView(normalizeViewOptions(options), ctx);
 
 				viewWeakMap.set(viewCtx.view, viewCtx);

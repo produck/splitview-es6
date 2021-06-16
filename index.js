@@ -1,1 +1,1 @@
-export { SplitviewContainer as Splitview } from './src/Container';
+export { SplitviewContainer as Container } from './src/Container';
