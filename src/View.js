@@ -140,7 +140,7 @@ export function SplitviewView(options, containerCtx) {
 		get resizable() { return options.max !== options.min; },
 		get eView() { return viewElement; },
 		get eHandler() { return handlerElement; },
-		get size() { return viewElement[containerCtx.axis.oS]; },
+		get size() { return viewElement[containerCtx.axis.oS] || 0.1; },
 		get o() { return viewElement[containerCtx.axis.o]; },
 		set size(value) {
 			if (ctx.size === value) { return; }

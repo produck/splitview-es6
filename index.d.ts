@@ -11,12 +11,6 @@ interface SplitviewViewHTMLDivElement extends HTMLDivElement {
 }
 interface SplitviewViewViewOptions {
 	/**
-	 * The view can be resized or not.
-	 * @default true
-	 */
-	resizable?: boolean;
-
-	/**
 	 * The minimum size of a view.
 	 * @default 0
 	 */
@@ -24,7 +18,7 @@ interface SplitviewViewViewOptions {
 
 	/**
 	 * The minimum size of a view.
-	 * @default screenWidth
+	 * @default screenWidth*4
 	 */
 	max?: number;
 }
@@ -59,8 +53,7 @@ interface SplitviewView {
 
 	/**
 	 * @param value The size for trying to set.
-	 *
-	 * The return is the difference between the actual value and the expected value.
+	 * @returns is the difference between the actual value and the expected value.
 	 *   - === 0 means an actual size set.
 	 *   - !== 0 means some free space.
 	 */
@@ -97,7 +90,8 @@ export interface SplitviewContainer {
 	/**
 	 * Creating a new view of this container.
 	 *
-	 * @param options view options
+	 * @param options view options. `min === max` means unresizable.
+	 * @returns the created view
 	 */
 	createView(options?: SplitviewViewViewOptions): SplitviewView;
 
@@ -105,6 +99,7 @@ export interface SplitviewContainer {
 	 * Putting an owned view to the end of this container.
 	 *
 	 * @param view a split view
+	 * @returns the new view
 	 */
 	appendView(view: SplitviewView): SplitviewView;
 
@@ -112,6 +107,7 @@ export interface SplitviewContainer {
 	 * Removing an owned view in the container.
 	 *
 	 * @param view a split view
+	 * @returns the new view
 	 */
 	removeView(view: SplitviewView): SplitviewView;
 
@@ -121,6 +117,7 @@ export interface SplitviewContainer {
 	 * @param newView the view to be inserted
 	 * @param referenceView The view before which newView is inserted.If this is
 	 * null, then newView is inserted at the end of this container.
+	 * @returns the new view
 	 */
 	insertBefore(newView: SplitviewView, referenceView: SplitviewView): SplitviewView;
 

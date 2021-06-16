@@ -12,19 +12,23 @@ export function SplitviewContainer() {
 	utils.setHandlerContainerStyle(handlerContainerElement);
 	containerElement.appendChild(handlerContainerElement);
 
+	let debouncer = null;
+
 	function autoAdjustment() {
+		clearTimeout(debouncer);
+
 		const viewCtxList = [];
-		const SUM_MAX = (sum, view) => sum + view.max;
 
 		ctx.head.each('next', viewCtx => viewCtxList.push(viewCtx));
+
 		viewCtxList.sort((viewCtxA, viewCtxB) => {
 			return (viewCtxA.max - viewCtxA.min) - (viewCtxB.max - viewCtxB.min);
 		});
 
 		const finalFreeSize = viewCtxList.reduce((freeSize, viewCtx, index) => {
-			const totalMax = viewCtxList.slice(index).reduce(SUM_MAX, 0);
-			const targetSize = Math.round(viewCtx.max / totalMax * freeSize);
-			const size = targetSize >= viewCtx.min ? targetSize : viewCtx.min;
+			const totalSize = viewCtxList.slice(index).reduce((sum, view) => sum + view.size, 0);
+			const targetSize = Math.round(viewCtx.size / totalSize * freeSize);
+			const size = Math.max(Math.min(viewCtx.max, targetSize), viewCtx.min);
 
 			viewCtx.size = size;
 
@@ -32,10 +36,14 @@ export function SplitviewContainer() {
 		}, containerElement[ctx.axis.oS]);
 
 		ctx.head.each('next', viewCtx => viewCtx.fixOffset());
-		console.log(finalFreeSize, containerElement[ctx.axis.oS]);
+
+		if (finalFreeSize !== 0) {
+			debouncer = setTimeout(() => console.warn(`Splitview: free ${finalFreeSize}px`), 1000);
+		}
 	}
 
 	let observer = null;
+	let viewChanged = false;
 
 	function observeContainerSize() {
 		const size = {
@@ -51,6 +59,11 @@ export function SplitviewContainer() {
 				const event = utils.SplitviewEvent('container-size-change', ctx.container);
 
 				containerElement.dispatchEvent(event);
+			}
+
+			if (viewChanged) {
+				relayout();
+				viewChanged = false;
 			}
 
 			size.width = width;
@@ -153,7 +166,7 @@ export function SplitviewContainer() {
 			appendView(view) {
 				assertOwned(view);
 				appendViewCtx(viewWeakMap.get(view));
-				relayout();
+				viewChanged = true;
 
 				return view;
 			},
@@ -167,7 +180,7 @@ export function SplitviewContainer() {
 				}
 
 				removeViewCtx(viewCtx);
-				relayout();
+				viewChanged = true;
 
 				return view;
 			},
@@ -197,7 +210,7 @@ export function SplitviewContainer() {
 					handlerContainerElement.insertBefore(newViewCtx.eHandler, referenceViewCtx.eHandler);
 				}
 
-				relayout();
+				viewChanged = true;
 
 				return newView;
 			},

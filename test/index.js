@@ -21,13 +21,15 @@ window.addEventListener('load', function () {
 
 	[
 		{ name: 'feature-button', min: 48, max: 48 },
+		// { name: 'feature-panel-0', min: 50 },
+		// { name: 'feature-panel-0', min: 50 },
 		{ name: 'feature-panel-0', min: 50 },
-		// { name: 'feature-panel-0', min: 50 },
-		// { name: 'feature-panel-0', min: 50 },
-		// { name: 'feature-panel-0', min: 50 },
-		{ name: 'feature-panel-1', max: 400, min: 0 },
-		{ name: 'feature-panel-2', max: 300, min: 50 },
-		{ name: 'desktop', max: 500, min: 200 }
+		{ name: 'feature-panel-0', min: 50 },
+		{ name: 'feature-panel-0', min: 50 },
+		{ name: 'feature-panel-0', min: 50 },
+		// { name: 'feature-panel-1', max: 400, min: 0 },
+		// { name: 'feature-panel-2', max: 300, min: 50 },
+		// { name: 'desktop', max: 500, min: 200 }
 	].forEach((viewOptions, index) => {
 		const view = container.createView(viewOptions);
 
@@ -38,6 +40,7 @@ window.addEventListener('load', function () {
 
 	container.element.addEventListener('container-size-change', function (event) {
 		console.log('container size:', event);
+		// container.relayout();
 	});
 
 	container.mount(workbenchElement);
