@@ -63,17 +63,37 @@ $ npm install splitview
 </body>
 </html>
 ```
+
+## Concepts
+
+### Axis
+
+### Force style
+
+### Pushing & pulling
+
+### Relayout
+
 ## API reference
 
 ### **Container()**: Container
+Creating a new splitview container,
 ```js
 import { Container } from 'splitview';
 
 const container = Container(); // A new container created.
 ```
 
-
 ### **container.element**: HTMLDivElement
+Accessing dom element of this split view, an element class is `sv-view`,
+```js
+import { Container } from 'splitview';
+
+const container = Container();
+
+console.log(container.element); // An element of container.
+```
+But it MUST use `container.mount()` to append a container into a document.
 
 ### **container.firstView**: View
 
@@ -95,7 +115,7 @@ const container = Container(); // A new container created.
 
 ### **container.relayout()**
 
-### Event:'container-size-change'
+### Event:**'container-size-change'**
 
 ### **ViewOptions**
 
@@ -111,7 +131,9 @@ const container = Container(); // A new container created.
 
 ### **view.setSize(value: number)**: number
 
-### Event:'view-size-change'
+### Event:**'view-size-change'**
+
+### Event:**'request-reset'**
 
 ## Pre-build
 

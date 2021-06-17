@@ -1,13 +1,22 @@
+/**
+ * Special event exnteding from `DOM Event` for splitview.
+ */
+interface SplitviewEvent extends Event {
+	bubbles: true;
+	data: SplitviewContainer | SplitviewView;
+}
+
 interface SplitviewContainerHTMLDivElement extends HTMLDivElement {
 	addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLDivElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
 	addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-	addEventListener(type: 'container-size-change', event: UIEvent): void;
+	addEventListener(type: 'container-size-change', event: SplitviewEvent): void;
 }
 
 interface SplitviewViewHTMLDivElement extends HTMLDivElement {
 	addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLDivElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
 	addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-	addEventListener(type: 'view-size-change', event: UIEvent): void;
+	addEventListener(type: 'view-size-change', event: SplitviewEvent): void;
+	addEventListener(type: 'request-reset', event: SplitviewEvent): void;
 }
 interface SplitviewViewViewOptions {
 	/**

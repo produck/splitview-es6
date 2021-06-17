@@ -125,7 +125,7 @@ export function SplitviewView(options, containerCtx) {
 	}
 
 	function dispatchRequestAdjustment() {
-		const event = utils.SplitviewEvent('request-resize', ctx.view);
+		const event = utils.SplitviewEvent('request-reset', ctx.view);
 
 		handlerElement.dispatchEvent(event);
 	}

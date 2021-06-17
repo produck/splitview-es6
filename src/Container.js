@@ -43,7 +43,6 @@ export function SplitviewContainer() {
 	}
 
 	let observer = null;
-	let viewChanged = false;
 
 	function observeContainerSize() {
 		const size = {
@@ -60,11 +59,6 @@ export function SplitviewContainer() {
 
 				autoAdjustment();
 				containerElement.dispatchEvent(event);
-			}
-
-			if (viewChanged) {
-				relayout();
-				viewChanged = false;
 			}
 
 			size.width = width;
@@ -135,6 +129,10 @@ export function SplitviewContainer() {
 					throw new Error('A direction MUST be `row` or `column`.');
 				}
 
+				if (value === ctx.direction) {
+					return;
+				}
+
 				ctx.direction = value;
 				ctx.axis = utils.AXIS_MAP[value];
 				relayout();
@@ -163,7 +161,7 @@ export function SplitviewContainer() {
 			appendView(view) {
 				assertOwned(view);
 				appendViewCtx(viewWeakMap.get(view));
-				viewChanged = true;
+				relayout();
 
 				return view;
 			},
@@ -177,7 +175,7 @@ export function SplitviewContainer() {
 				}
 
 				removeViewCtx(viewCtx);
-				viewChanged = true;
+				relayout();
 
 				return view;
 			},
@@ -207,7 +205,7 @@ export function SplitviewContainer() {
 					handlerContainerElement.insertBefore(newViewCtx.eHandler, referenceViewCtx.eHandler);
 				}
 
-				viewChanged = true;
+				relayout();
 
 				return newView;
 			},
