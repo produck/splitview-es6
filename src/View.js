@@ -1,8 +1,10 @@
 import * as utils from './utils';
+export const NEXT = 1, PREV = 0;
 
 const GET_SIZE = ctx => ctx._size;
 const GET_MIN = ctx => ctx.min;
 const HANDLER_SIZE = 4;
+
 
 function SUM(ctx, which, getter) {
 	let sum = 0;
@@ -12,20 +14,31 @@ function SUM(ctx, which, getter) {
 	return sum;
 }
 
-function ConfigNext(ctx) {
-	return {
-		pulled: ctx.prev,
-		limit: { pull: ctx.prev.max, push: SUM(ctx.prev, 'next', GET_MIN) },
-		origin: { pull: ctx.prev.size, push: SUM(ctx.prev, 'next', GET_SIZE) }
-	};
-}
+const Config = {
+	[NEXT]: function ConfigNext(ctx) {
+		const viewCtx = ctx[PREV];
 
-function ConfigPrev(ctx) {
-	return {
-		pulled: ctx,
-		limit: { pull: ctx.max, push: SUM(ctx, 'prev', GET_MIN) },
-		origin: { pull: ctx.size, push: SUM(ctx, 'prev', GET_SIZE) }
-	};
+		return {
+			direction: NEXT,
+			pulled: viewCtx,
+			limit: { pull: viewCtx.max, push: SUM(viewCtx, NEXT, GET_MIN) },
+			origin: { pull: viewCtx.size, push: SUM(viewCtx, NEXT, GET_SIZE) }
+		};
+	},
+	[PREV]: function ConfigPrev(ctx) {
+		const viewCtx = ctx;
+
+		return {
+			direction: PREV,
+			pulled: viewCtx,
+			limit: { pull: viewCtx.max, push: SUM(viewCtx, PREV, GET_MIN) },
+			origin: { pull: viewCtx.size, push: SUM(viewCtx, PREV, GET_SIZE) }
+		};
+	}
+};
+
+function computeDistance(a, b) {
+	return utils.MATH.trunc(utils.MATH.abs(a - b));
 }
 
 export function EndpointView(containerCtx) {
@@ -46,10 +59,10 @@ export function SplitviewView(options, containerCtx) {
 	utils.setViewOuterStyle(viewElement);
 	utils.setHandlerStyle(handlerElement);
 
-	function updateViewState(deltaSize, which, state) {
-		const { limit, origin, pulled } = state;
+	function updateViewState(deltaSize, config) {
+		const { limit, origin, pulled, direction } = config;
 
-		pulled.size = Math.min(
+		pulled.size = utils.MATH.min(
 			limit.pull, // !pullable
 			origin.pull + origin.push - limit.push, // !pushable
 			origin.pull + deltaSize // General
@@ -62,7 +75,7 @@ export function SplitviewView(options, containerCtx) {
 		 * Because number of view changing size a time may be less than last time.
 		 * So use `forEach` not `find`. No need for more optimization.
 		 */
-		pulled.each(which, ctx => {
+		pulled.each(direction, ctx => {
 			const delta = ctx._size - freeDelta > ctx.min
 				? freeDelta : ctx._size - ctx.min;
 
@@ -72,16 +85,20 @@ export function SplitviewView(options, containerCtx) {
 	}
 
 	function startResize(event) {
-		const initPos = event[containerCtx.axis.p];
+		const { axis } = containerCtx;
+		const initPos = event[axis.p];
 
-		utils.setStyle(utils.doc.body, { 'cursor': containerCtx.axis.sCV });
+		utils.setStyle(utils.DOC.body, { 'cursor': axis.sCV });
 		ctx.resizing = containerCtx.resizing = true;
 		containerCtx.snapshot();
 
-		const Config = { next: ConfigNext(ctx), prev: ConfigPrev(ctx) };
+		const configMap = {
+			[NEXT]: Config[NEXT](ctx),
+			[PREV]: Config[PREV](ctx)
+		};
 
 		function updateViewStateWhenMoving(event) {
-			const delta = event[containerCtx.axis.p] - initPos;
+			const delta = event[axis.p] - initPos;
 
 			/**
 			 * - There will be a smaller probability that pointer position moving back
@@ -94,23 +111,23 @@ export function SplitviewView(options, containerCtx) {
 			containerCtx.restore();
 
 			if (delta !== 0) {
-				const which = delta > 0 ? 'next' : 'prev';
-
-				updateViewState(Math.abs(delta), which, Config[which]);
+				updateViewState(utils.MATH.abs(delta), configMap[delta > 0 ? NEXT : PREV]);
 			}
 		}
 
-		utils.addEventListener(utils.win, 'mousemove', updateViewStateWhenMoving);
-		utils.addEventListener(utils.win, 'mouseup', function endResize() {
-			utils.removeEventListener(utils.win, 'mousemove', updateViewStateWhenMoving);
-			utils.removeEventListener(utils.win, 'mouseup', endResize);
-			utils.setStyle(utils.doc.body, { 'cursor': 'default' });
+		utils.addEventListener(utils.WIN, 'mousemove', updateViewStateWhenMoving);
+		utils.addEventListener(utils.WIN, 'mouseup', function endResize() {
+			utils.removeEventListener(utils.WIN, 'mousemove', updateViewStateWhenMoving);
+			utils.removeEventListener(utils.WIN, 'mouseup', endResize);
+			utils.setStyle(utils.DOC.body, { 'cursor': 'default' });
 			ctx.resizing = containerCtx.resizing = false;
 			updateHandlerColor();
 		});
 	}
 
-	function updateHandlerColor(hover) {
+	let hover = false;
+
+	function updateHandlerColor() {
 		const resizing = ctx.resizing && containerCtx.resizing;
 		const ready = hover && !containerCtx.resizing;
 		const highlight = resizing || ready;
@@ -125,36 +142,34 @@ export function SplitviewView(options, containerCtx) {
 	}
 
 	function dispatchRequestAdjustment() {
-		const event = utils.SplitviewEvent('request-reset', ctx.view);
-
-		handlerElement.dispatchEvent(event);
+		handlerElement.dispatchEvent(utils.SplitviewEvent('request-reset', ctx.view));
 	}
 
+	utils.addEventListener(handlerElement, 'mouseover', () => hover = true);
+	utils.addEventListener(handlerElement, 'mouseout', () => hover = false);
 	utils.addEventListener(handlerElement, 'mousedown', startResize);
-	utils.addEventListener(handlerElement, 'mouseover', () => updateHandlerColor(true));
-	utils.addEventListener(handlerElement, 'mouseout', () => updateHandlerColor(false));
+	utils.addEventListener(handlerElement, 'mouseover', updateHandlerColor);
+	utils.addEventListener(handlerElement, 'mouseout', updateHandlerColor);
 	utils.addEventListener(handlerElement, 'dblclick', dispatchRequestAdjustment);
 
 	const ctx = {
 		resizing: false,
 		_size: 0,
-		prev: null,
-		next: null,
+		[PREV]: null,
+		[NEXT]: null,
 		get min() { return options.min; },
 		get max() { return options.max; },
 		get resizable() { return options.max !== options.min; },
 		get eView() { return viewElement; },
 		get eHandler() { return handlerElement; },
-		get size() { return viewElement[containerCtx.axis.oS] || 0.1; },
+		get size() { return viewElement[containerCtx.axis.oS] + 0.01; },
 		get o() { return viewElement[containerCtx.axis.o]; },
 		set size(value) {
-			if (ctx.size === value) { return; }
-
-			const event = utils.SplitviewEvent('view-size-change', ctx.view);
-
-			utils.setStyle(viewElement, { [containerCtx.axis.sS]: `${value}px` });
-			ctx.each('next', sibling => sibling.fixOffset());
-			viewElement.dispatchEvent(event);
+			if (ctx.size !== value) {
+				utils.setStyle(viewElement, { [containerCtx.axis.sS]: `${value}px` });
+				ctx.each(NEXT, sibling => sibling.fixOffset());
+				viewElement.dispatchEvent(utils.SplitviewEvent('view-size-change', ctx.view));
+			}
 		},
 		each(which, callback) {
 			let sibling = ctx[which];
@@ -165,27 +180,30 @@ export function SplitviewView(options, containerCtx) {
 			}
 		},
 		fixOffset() {
-			const offset = ctx.prev.o + ctx.prev.size;
+			const { axis } = containerCtx;
+			const offset = ctx[PREV].o + ctx[PREV].size;
 
 			utils.setStyle(viewElement, {
-				[containerCtx.axis.sO]: `${offset}px`
+				[axis.sO]: `${offset}px`
 			});
 
 			utils.setStyle(handlerElement, {
-				[containerCtx.axis.sO]: `${offset - HANDLER_SIZE / 2}px `
+				[axis.sO]: `${offset - HANDLER_SIZE / 2}px `
 			});
 		},
 		relayout() {
+			const { axis } = containerCtx;
+
 			utils.setStyle(viewElement, {
-				[containerCtx.axis.cSS]: '100%',
-				[containerCtx.axis.cSO]: '0'
+				[axis.cSS]: '100%',
+				[axis.cSO]: '0'
 			});
 
 			utils.setStyle(handlerElement, {
-				[containerCtx.axis.cSS]: '100%',
-				[containerCtx.axis.cSO]: '0',
-				[containerCtx.axis.sS]: `${HANDLER_SIZE}px`,
-				['display']: ctx.prev.resizable ? 'block' : 'none'
+				[axis.cSS]: '100%',
+				[axis.cSO]: '0',
+				[axis.sS]: `${HANDLER_SIZE}px`,
+				['display']: ctx[PREV].resizable ? 'block' : 'none'
 			});
 
 			ctx.size = ctx.min;
@@ -193,30 +211,33 @@ export function SplitviewView(options, containerCtx) {
 		view: Object.seal({
 			get container() { return containerCtx.container; },
 			get element() { return viewElement; },
-			get previousSibling() { return ctx.prev.view; },
-			get nextSibling() { return ctx.next.view; },
-			get size() { return ctx.size; },
+			get previousSibling() { return ctx[PREV].view; },
+			get nextSibling() { return ctx[NEXT].view; },
+			get size() { return utils.MATH.trunc(ctx.size); },
 			setSize(value) {
 				if (typeof value !== 'number') {
-					throw new TypeError('A view size MUST be a number.');
+					throw new Error('A view size MUST be a number.');
 				}
 
-				const finalValue = Math.max(Math.min(value, ctx.max), ctx.min);
-				const delta = finalValue - ctx.size;
-
-				if (delta === 0) return;
+				const finalValue = utils.getMedian(ctx.min, ctx.max, value);
 
 				containerCtx.snapshot();
 
-				const deltaSize = Math.abs(delta);
-				const which = delta > 0 ? 'next' : 'prev';
+				if (computeDistance(finalValue, ctx.size) === 0) return 0;
 
-				updateViewState(deltaSize, which, {
-					next: ConfigNext,
-					prev: ConfigPrev
-				}[which](ctx.next));
+				const delta = finalValue - ctx.size;
+				const deltaSize = utils.MATH.abs(delta);
 
-				return Math.abs(finalValue - ctx.size);
+				updateViewState(deltaSize, Config[delta > 0 ? NEXT : PREV](ctx[NEXT]));
+
+				if (computeDistance(finalValue, ctx.size) !== 0) {
+					const delta = finalValue - ctx.size;
+					const deltaSize = utils.MATH.abs(delta);
+
+					updateViewState(deltaSize, Config[delta > 0 ? PREV : NEXT](ctx));
+				}
+
+				return computeDistance(finalValue, ctx.size);
 			}
 		})
 	};

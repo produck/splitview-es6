@@ -35,11 +35,10 @@ export const FIXED_HANDLER_STYLE = {
 	'user-select': 'none'
 };
 
-export const win = window;
-export const doc = document;
+export const WIN = window, DOC = document, MATH = Math;
 
 export function createDivElement() {
-	return doc.createElement('div');
+	return DOC.createElement('div');
 }
 
 export function setClassName(element, value) {
@@ -60,6 +59,10 @@ export function SplitviewEvent(type, data) {
 	event.data = data;
 
 	return event;
+}
+
+export function getMedian(min, max, target) {
+	return MATH.max(MATH.min(target, max), min);
 }
 
 /**

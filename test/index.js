@@ -35,6 +35,10 @@ window.addEventListener('load', function () {
 
 		container.appendView(view);
 		index;
+
+		view.element.addEventListener('request-reset', () => {
+			console.log('reset');
+		});
 		// view.element.addEventListener('view-size-change', event => console.log(event, viewOptions, index));
 	});
 
