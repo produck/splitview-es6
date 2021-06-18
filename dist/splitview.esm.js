@@ -1,5 +1,5 @@
 /*!
- * Splitview v0.1.1
+ * Splitview v0.1.2
  * (c) 2020-2021 ChaosLee
  * Released under the MIT License.
  */
@@ -67,11 +67,10 @@ const FIXED_HANDLER_STYLE = {
 	'user-select': 'none'
 };
 
-const win = window;
-const doc = document;
+const WIN = window, DOC = document, MATH = Math;
 
 function createDivElement() {
-	return doc.createElement('div');
+	return DOC.createElement('div');
 }
 
 function setClassName(element, value) {
@@ -92,6 +91,10 @@ function SplitviewEvent(type, data) {
 	event.data = data;
 
 	return event;
+}
+
+function getMedian(min, max, target) {
+	return MATH.max(MATH.min(target, max), min);
 }
 
 /**
@@ -142,9 +145,12 @@ const AXIS_MAP = {
 	},
 };
 
+const NEXT = 1, PREV = 0;
+
 const GET_SIZE = ctx => ctx._size;
 const GET_MIN = ctx => ctx.min;
 const HANDLER_SIZE = 4;
+
 
 function SUM(ctx, which, getter) {
 	let sum = 0;
@@ -154,20 +160,31 @@ function SUM(ctx, which, getter) {
 	return sum;
 }
 
-function ConfigNext(ctx) {
-	return {
-		pulled: ctx.prev,
-		limit: { pull: ctx.prev.max, push: SUM(ctx.prev, 'next', GET_MIN) },
-		origin: { pull: ctx.prev.size, push: SUM(ctx.prev, 'next', GET_SIZE) }
-	};
-}
+const Config = {
+	[NEXT]: function ConfigNext(ctx) {
+		const viewCtx = ctx[PREV];
 
-function ConfigPrev(ctx) {
-	return {
-		pulled: ctx,
-		limit: { pull: ctx.max, push: SUM(ctx, 'prev', GET_MIN) },
-		origin: { pull: ctx.size, push: SUM(ctx, 'prev', GET_SIZE) }
-	};
+		return {
+			direction: NEXT,
+			pulled: viewCtx,
+			limit: { pull: viewCtx.max, push: SUM(viewCtx, NEXT, GET_MIN) },
+			origin: { pull: viewCtx.size, push: SUM(viewCtx, NEXT, GET_SIZE) }
+		};
+	},
+	[PREV]: function ConfigPrev(ctx) {
+		const viewCtx = ctx;
+
+		return {
+			direction: PREV,
+			pulled: viewCtx,
+			limit: { pull: viewCtx.max, push: SUM(viewCtx, PREV, GET_MIN) },
+			origin: { pull: viewCtx.size, push: SUM(viewCtx, PREV, GET_SIZE) }
+		};
+	}
+};
+
+function computeDistance(a, b) {
+	return MATH.trunc(MATH.abs(a - b));
 }
 
 function EndpointView(containerCtx) {
@@ -188,10 +205,10 @@ function SplitviewView(options, containerCtx) {
 	setViewOuterStyle(viewElement);
 	setHandlerStyle(handlerElement);
 
-	function updateViewState(deltaSize, which, state) {
-		const { limit, origin, pulled } = state;
+	function updateViewState(deltaSize, config) {
+		const { limit, origin, pulled, direction } = config;
 
-		pulled.size = Math.min(
+		pulled.size = MATH.min(
 			limit.pull, // !pullable
 			origin.pull + origin.push - limit.push, // !pushable
 			origin.pull + deltaSize // General
@@ -204,7 +221,7 @@ function SplitviewView(options, containerCtx) {
 		 * Because number of view changing size a time may be less than last time.
 		 * So use `forEach` not `find`. No need for more optimization.
 		 */
-		pulled.each(which, ctx => {
+		pulled.each(direction, ctx => {
 			const delta = ctx._size - freeDelta > ctx.min
 				? freeDelta : ctx._size - ctx.min;
 
@@ -214,16 +231,20 @@ function SplitviewView(options, containerCtx) {
 	}
 
 	function startResize(event) {
-		const initPos = event[containerCtx.axis.p];
+		const { axis } = containerCtx;
+		const initPos = event[axis.p];
 
-		setStyle(doc.body, { 'cursor': containerCtx.axis.sCV });
+		setStyle(DOC.body, { 'cursor': axis.sCV });
 		ctx.resizing = containerCtx.resizing = true;
 		containerCtx.snapshot();
 
-		const Config = { next: ConfigNext(ctx), prev: ConfigPrev(ctx) };
+		const configMap = {
+			[NEXT]: Config[NEXT](ctx),
+			[PREV]: Config[PREV](ctx)
+		};
 
 		function updateViewStateWhenMoving(event) {
-			const delta = event[containerCtx.axis.p] - initPos;
+			const delta = event[axis.p] - initPos;
 
 			/**
 			 * - There will be a smaller probability that pointer position moving back
@@ -236,23 +257,23 @@ function SplitviewView(options, containerCtx) {
 			containerCtx.restore();
 
 			if (delta !== 0) {
-				const which = delta > 0 ? 'next' : 'prev';
-
-				updateViewState(Math.abs(delta), which, Config[which]);
+				updateViewState(MATH.abs(delta), configMap[delta > 0 ? NEXT : PREV]);
 			}
 		}
 
-		addEventListener(win, 'mousemove', updateViewStateWhenMoving);
-		addEventListener(win, 'mouseup', function endResize() {
-			removeEventListener(win, 'mousemove', updateViewStateWhenMoving);
-			removeEventListener(win, 'mouseup', endResize);
-			setStyle(doc.body, { 'cursor': 'default' });
+		addEventListener(WIN, 'mousemove', updateViewStateWhenMoving);
+		addEventListener(WIN, 'mouseup', function endResize() {
+			removeEventListener(WIN, 'mousemove', updateViewStateWhenMoving);
+			removeEventListener(WIN, 'mouseup', endResize);
+			setStyle(DOC.body, { 'cursor': 'default' });
 			ctx.resizing = containerCtx.resizing = false;
 			updateHandlerColor();
 		});
 	}
 
-	function updateHandlerColor(hover) {
+	let hover = false;
+
+	function updateHandlerColor() {
 		const resizing = ctx.resizing && containerCtx.resizing;
 		const ready = hover && !containerCtx.resizing;
 		const highlight = resizing || ready;
@@ -267,36 +288,34 @@ function SplitviewView(options, containerCtx) {
 	}
 
 	function dispatchRequestAdjustment() {
-		const event = SplitviewEvent('request-reset', ctx.view);
-
-		handlerElement.dispatchEvent(event);
+		handlerElement.dispatchEvent(SplitviewEvent('request-reset', ctx.view));
 	}
 
+	addEventListener(handlerElement, 'mouseover', () => hover = true);
+	addEventListener(handlerElement, 'mouseout', () => hover = false);
 	addEventListener(handlerElement, 'mousedown', startResize);
-	addEventListener(handlerElement, 'mouseover', () => updateHandlerColor(true));
-	addEventListener(handlerElement, 'mouseout', () => updateHandlerColor(false));
+	addEventListener(handlerElement, 'mouseover', updateHandlerColor);
+	addEventListener(handlerElement, 'mouseout', updateHandlerColor);
 	addEventListener(handlerElement, 'dblclick', dispatchRequestAdjustment);
 
 	const ctx = {
 		resizing: false,
 		_size: 0,
-		prev: null,
-		next: null,
+		[PREV]: null,
+		[NEXT]: null,
 		get min() { return options.min; },
 		get max() { return options.max; },
 		get resizable() { return options.max !== options.min; },
 		get eView() { return viewElement; },
 		get eHandler() { return handlerElement; },
-		get size() { return viewElement[containerCtx.axis.oS] || 0.1; },
+		get size() { return viewElement[containerCtx.axis.oS] + 0.01; },
 		get o() { return viewElement[containerCtx.axis.o]; },
 		set size(value) {
-			if (ctx.size === value) { return; }
-
-			const event = SplitviewEvent('view-size-change', ctx.view);
-
-			setStyle(viewElement, { [containerCtx.axis.sS]: `${value}px` });
-			ctx.each('next', sibling => sibling.fixOffset());
-			viewElement.dispatchEvent(event);
+			if (ctx.size !== value) {
+				setStyle(viewElement, { [containerCtx.axis.sS]: `${value}px` });
+				ctx.each(NEXT, sibling => sibling.fixOffset());
+				viewElement.dispatchEvent(SplitviewEvent('view-size-change', ctx.view));
+			}
 		},
 		each(which, callback) {
 			let sibling = ctx[which];
@@ -307,27 +326,30 @@ function SplitviewView(options, containerCtx) {
 			}
 		},
 		fixOffset() {
-			const offset = ctx.prev.o + ctx.prev.size;
+			const { axis } = containerCtx;
+			const offset = ctx[PREV].o + ctx[PREV].size;
 
 			setStyle(viewElement, {
-				[containerCtx.axis.sO]: `${offset}px`
+				[axis.sO]: `${offset}px`
 			});
 
 			setStyle(handlerElement, {
-				[containerCtx.axis.sO]: `${offset - HANDLER_SIZE / 2}px `
+				[axis.sO]: `${offset - HANDLER_SIZE / 2}px `
 			});
 		},
 		relayout() {
+			const { axis } = containerCtx;
+
 			setStyle(viewElement, {
-				[containerCtx.axis.cSS]: '100%',
-				[containerCtx.axis.cSO]: '0'
+				[axis.cSS]: '100%',
+				[axis.cSO]: '0'
 			});
 
 			setStyle(handlerElement, {
-				[containerCtx.axis.cSS]: '100%',
-				[containerCtx.axis.cSO]: '0',
-				[containerCtx.axis.sS]: `${HANDLER_SIZE}px`,
-				['display']: ctx.prev.resizable ? 'block' : 'none'
+				[axis.cSS]: '100%',
+				[axis.cSO]: '0',
+				[axis.sS]: `${HANDLER_SIZE}px`,
+				['display']: ctx[PREV].resizable ? 'block' : 'none'
 			});
 
 			ctx.size = ctx.min;
@@ -335,36 +357,41 @@ function SplitviewView(options, containerCtx) {
 		view: Object.seal({
 			get container() { return containerCtx.container; },
 			get element() { return viewElement; },
-			get previousSibling() { return ctx.prev.view; },
-			get nextSibling() { return ctx.next.view; },
-			get size() { return ctx.size; },
+			get previousSibling() { return ctx[PREV].view; },
+			get nextSibling() { return ctx[NEXT].view; },
+			get size() { return MATH.trunc(ctx.size); },
 			setSize(value) {
 				if (typeof value !== 'number') {
-					throw new TypeError('A view size MUST be a number.');
+					throw new Error('A view size MUST be a number.');
 				}
 
-				const finalValue = Math.max(Math.min(value, ctx.max), ctx.min);
-				const delta = finalValue - ctx.size;
-
-				if (delta === 0) return;
+				const finalValue = getMedian(ctx.min, ctx.max, value);
 
 				containerCtx.snapshot();
 
-				const deltaSize = Math.abs(delta);
-				const which = delta > 0 ? 'next' : 'prev';
+				if (computeDistance(finalValue, ctx.size) === 0) return 0;
 
-				updateViewState(deltaSize, which, {
-					next: ConfigNext,
-					prev: ConfigPrev
-				}[which](ctx.next));
+				const delta = finalValue - ctx.size;
+				const deltaSize = MATH.abs(delta);
 
-				return Math.abs(finalValue - ctx.size);
+				updateViewState(deltaSize, Config[delta > 0 ? NEXT : PREV](ctx[NEXT]));
+
+				if (computeDistance(finalValue, ctx.size) !== 0) {
+					const delta = finalValue - ctx.size;
+					const deltaSize = MATH.abs(delta);
+
+					updateViewState(deltaSize, Config[delta > 0 ? PREV : NEXT](ctx));
+				}
+
+				return computeDistance(finalValue, ctx.size);
 			}
 		})
 	};
 
 	return ctx;
 }
+
+const HEAD = 0, REAR = 1;
 
 function SplitviewContainer() {
 	const containerElement = createDivElement();
@@ -383,7 +410,7 @@ function SplitviewContainer() {
 
 		const viewCtxList = [];
 
-		ctx.head.each('next', viewCtx => viewCtxList.push(viewCtx));
+		ctx[HEAD].each(NEXT, viewCtx => viewCtxList.push(viewCtx));
 
 		viewCtxList.sort((viewCtxA, viewCtxB) => {
 			return (viewCtxA.max - viewCtxA.min) - (viewCtxB.max - viewCtxB.min);
@@ -391,15 +418,15 @@ function SplitviewContainer() {
 
 		const finalFreeSize = viewCtxList.reduce((freeSize, viewCtx, index) => {
 			const totalSize = viewCtxList.slice(index).reduce((sum, view) => sum + view.size, 0);
-			const targetSize = Math.round(viewCtx.size / totalSize * freeSize);
-			const size = Math.max(Math.min(viewCtx.max, targetSize), viewCtx.min);
+			const targetSize = MATH.round(viewCtx.size / totalSize * freeSize);
+			const size = getMedian(viewCtx.min, viewCtx.max, targetSize);
 
 			viewCtx.size = size;
 
 			return freeSize - size;
 		}, containerElement[ctx.axis.oS]);
 
-		ctx.head.each('next', viewCtx => viewCtx.fixOffset());
+		ctx[HEAD].each(NEXT, viewCtx => viewCtx.fixOffset());
 
 		if (finalFreeSize !== 0) {
 			debouncer = setTimeout(() => console.warn(`Splitview: free ${finalFreeSize}px`), 1000);
@@ -419,15 +446,13 @@ function SplitviewContainer() {
 			const height = containerElement.offsetHeight;
 
 			if (size.width !== width || size.height !== height) {
-				const event = SplitviewEvent('container-size-change', ctx.container);
-
 				autoAdjustment();
-				containerElement.dispatchEvent(event);
+				containerElement.dispatchEvent(SplitviewEvent('container-size-change', ctx.container));
 			}
 
 			size.width = width;
 			size.height = height;
-			observer = win.requestAnimationFrame(observe);
+			observer = WIN.requestAnimationFrame(observe);
 		}());
 	}
 
@@ -442,24 +467,24 @@ function SplitviewContainer() {
 				[ctx.axis.sS]: '0'
 			});
 
-			ctx.head.each('next', view => view.relayout());
+			ctx[HEAD].each(NEXT, view => view.relayout());
 			autoAdjustment();
 		}
 	}
 
 	function appendViewCtx(viewCtx) {
-		ctx.rear.prev.next = viewCtx;
-		viewCtx.prev = ctx.rear.prev;
-		viewCtx.next = ctx.rear;
-		ctx.rear.prev = viewCtx;
+		ctx[REAR][PREV][NEXT] = viewCtx;
+		viewCtx[PREV] = ctx[REAR][PREV];
+		viewCtx[NEXT] = ctx[REAR];
+		ctx[REAR][PREV] = viewCtx;
 		containerElement.appendChild(viewCtx.eView);
 		handlerContainerElement.appendChild(viewCtx.eHandler);
 	}
 
 	function removeViewCtx(viewCtx) {
-		viewCtx.prev.next = viewCtx.next;
-		viewCtx.next.prev = viewCtx.prev;
-		viewCtx.next = viewCtx.prev = null;
+		viewCtx[PREV][NEXT] = viewCtx[NEXT];
+		viewCtx[NEXT][PREV] = viewCtx[PREV];
+		viewCtx[NEXT] = viewCtx[PREV] = null;
 		containerElement.removeChild(viewCtx.eView);
 		handlerContainerElement.removeChild(viewCtx.eHandler);
 	}
@@ -476,13 +501,13 @@ function SplitviewContainer() {
 		resizing: false,
 		axis: AXIS_MAP.row,
 		direction: 'row',
-		head: null,
-		rear: null,
+		[HEAD]: null,
+		[REAR]: null,
 		snapshot() {
-			ctx.head.each('next', ctx => ctx._size = ctx.size);
+			ctx[HEAD].each(NEXT, ctx => ctx._size = ctx.size);
 		},
 		restore() {
-			ctx.head.each('next', ctx => ctx.size = ctx._size);
+			ctx[HEAD].each(NEXT, ctx => ctx.size = ctx._size);
 		},
 		container: Object.seal({
 			/**
@@ -503,12 +528,12 @@ function SplitviewContainer() {
 			},
 			get direction() { return ctx.direction; },
 			get element() { return containerElement; },
-			get firstView() { return ctx.head.next.view; },
-			get lastView() { return ctx.rear.prev.view; },
+			get firstView() { return ctx[HEAD][NEXT].view; },
+			get lastView() { return ctx[REAR][PREV].view; },
 			get viewList() {
 				const list = [];
 
-				ctx.head.each('next', viewCtx => list.push(viewCtx.view));
+				ctx[HEAD].each(NEXT, viewCtx => list.push(viewCtx.view));
 
 				return list;
 			},
@@ -560,10 +585,10 @@ function SplitviewContainer() {
 					const newViewCtx = viewWeakMap.get(newView);
 					const referenceViewCtx = viewWeakMap.get(referenceView);
 
-					newViewCtx.next = referenceViewCtx;
-					newViewCtx.prev = referenceViewCtx.prev;
-					referenceViewCtx.prev.next = newViewCtx;
-					referenceViewCtx.prev = newViewCtx;
+					newViewCtx[NEXT] = referenceViewCtx;
+					newViewCtx[PREV] = referenceViewCtx[PREV];
+					referenceViewCtx[PREV][NEXT] = newViewCtx;
+					referenceViewCtx[PREV] = newViewCtx;
 
 					containerElement.insertBefore(newViewCtx.eView, referenceViewCtx.eView);
 					handlerContainerElement.insertBefore(newViewCtx.eHandler, referenceViewCtx.eHandler);
@@ -587,10 +612,10 @@ function SplitviewContainer() {
 		})
 	};
 
-	ctx.head = EndpointView(ctx);
-	ctx.rear = EndpointView(ctx);
-	ctx.head.next = ctx.rear;
-	ctx.rear.prev = ctx.head;
+	ctx[HEAD] = EndpointView(ctx);
+	ctx[REAR] = EndpointView(ctx);
+	ctx[HEAD][NEXT] = ctx[REAR];
+	ctx[REAR][PREV] = ctx[HEAD];
 
 	return ctx.container;
 }
