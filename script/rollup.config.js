@@ -3,10 +3,12 @@ import { defineConfig } from 'rollup';
 import { terser } from 'rollup-plugin-terser';
 import { eslint } from 'rollup-plugin-eslint';
 
+const meta = require('../package.json');
+
 const MODULE_NAME = 'splitview';
 const BANNER =
 	'/*!\n' +
-	` * Splitview v${require('../package.json').version}\n` +
+	` * ${meta.name} v${meta.version}\n` +
 	` * (c) 2020-${new Date().getFullYear()} ChaosLee\n` +
 	' * Released under the MIT License.\n' +
 	' */';

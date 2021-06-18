@@ -97,6 +97,8 @@ console.log(container.element); // An element of container.
 ```
 But it MUST use `container.mount()` to append a container into a document.
 
+### **container.direction**: 'row' | 'column'
+
 ### **container.firstView**: View
 
 ### **container.lastView**: View

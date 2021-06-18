@@ -89,7 +89,7 @@ export function SplitviewView(options, containerCtx) {
 		const initPos = event[axis.p];
 
 		utils.setStyle(utils.DOC.body, { 'cursor': axis.sCV });
-		ctx.resizing = containerCtx.resizing = true;
+		ctx[utils.RESIZING] = containerCtx[utils.RESIZING] = true;
 		containerCtx.snapshot();
 
 		const configMap = {
@@ -119,26 +119,20 @@ export function SplitviewView(options, containerCtx) {
 		utils.addEventListener(utils.WIN, 'mouseup', function endResize() {
 			utils.removeEventListener(utils.WIN, 'mousemove', updateViewStateWhenMoving);
 			utils.removeEventListener(utils.WIN, 'mouseup', endResize);
-			utils.setStyle(utils.DOC.body, { 'cursor': 'default' });
-			ctx.resizing = containerCtx.resizing = false;
-			updateHandlerColor();
+			ctx[utils.RESIZING] = containerCtx[utils.RESIZING] = false;
+			updateStyle();
 		});
 	}
 
 	let hover = false;
 
-	function updateHandlerColor() {
-		const resizing = ctx.resizing && containerCtx.resizing;
-		const ready = hover && !containerCtx.resizing;
+	function updateStyle() {
+		const resizing = ctx[utils.RESIZING] && containerCtx[utils.RESIZING];
+		const ready = hover && !containerCtx[utils.RESIZING];
 		const highlight = resizing || ready;
 
-		utils.setStyle(handlerElement, highlight ? {
-			'background-color': '#007fd4',
-			'cursor': containerCtx.axis.sCV,
-		} : {
-			'background-color': null,
-			'cursor': 'default',
-		});
+		utils.setStyle(handlerElement, { 'background-color': highlight ? '#007fd4': null });
+		utils.setStyle(utils.DOC.body, { 'cursor': highlight ? containerCtx.axis.sCV : 'default' });
 	}
 
 	function dispatchRequestAdjustment() {
@@ -148,12 +142,12 @@ export function SplitviewView(options, containerCtx) {
 	utils.addEventListener(handlerElement, 'mouseover', () => hover = true);
 	utils.addEventListener(handlerElement, 'mouseout', () => hover = false);
 	utils.addEventListener(handlerElement, 'mousedown', startResize);
-	utils.addEventListener(handlerElement, 'mouseover', updateHandlerColor);
-	utils.addEventListener(handlerElement, 'mouseout', updateHandlerColor);
+	utils.addEventListener(handlerElement, 'mouseover', updateStyle);
+	utils.addEventListener(handlerElement, 'mouseout', updateStyle);
 	utils.addEventListener(handlerElement, 'dblclick', dispatchRequestAdjustment);
 
 	const ctx = {
-		resizing: false,
+		[utils.RESIZING]: false,
 		_size: 0,
 		[PREV]: null,
 		[NEXT]: null,
@@ -165,9 +159,11 @@ export function SplitviewView(options, containerCtx) {
 		get size() { return viewElement[containerCtx.axis.oS] + 0.01; },
 		get o() { return viewElement[containerCtx.axis.o]; },
 		set size(value) {
+			value = utils.MATH.trunc(value);
+
 			if (ctx.size !== value) {
 				utils.setStyle(viewElement, { [containerCtx.axis.sS]: `${value}px` });
-				ctx.each(NEXT, sibling => sibling.fixOffset());
+				ctx.each(NEXT, sibling => sibling[utils.FIX_OFFSET]());
 				viewElement.dispatchEvent(utils.SplitviewEvent('view-size-change', ctx.view));
 			}
 		},
@@ -179,9 +175,9 @@ export function SplitviewView(options, containerCtx) {
 				sibling = sibling[which];
 			}
 		},
-		fixOffset() {
+		[utils.FIX_OFFSET]() {
 			const { axis } = containerCtx;
-			const offset = ctx[PREV].o + ctx[PREV].size;
+			const offset = utils.MATH.trunc(ctx[PREV].o + ctx[PREV].size);
 
 			utils.setStyle(viewElement, {
 				[axis.sO]: `${offset}px`
@@ -209,7 +205,7 @@ export function SplitviewView(options, containerCtx) {
 			ctx.size = ctx.min;
 		},
 		view: Object.seal({
-			get container() { return containerCtx.container; },
+			get container() { return containerCtx[utils.CONTAINER]; },
 			get element() { return viewElement; },
 			get previousSibling() { return ctx[PREV].view; },
 			get nextSibling() { return ctx[NEXT].view; },
@@ -221,20 +217,25 @@ export function SplitviewView(options, containerCtx) {
 
 				const finalValue = utils.getMedian(ctx.min, ctx.max, value);
 
-				containerCtx.snapshot();
+				/**
+				 * Not to set view.size if resizing.
+				 */
+				if (!containerCtx[utils.RESIZING]) {
+					if (computeDistance(finalValue, ctx.size) === 0) return 0;
 
-				if (computeDistance(finalValue, ctx.size) === 0) return 0;
+					containerCtx.snapshot();
 
-				const delta = finalValue - ctx.size;
-				const deltaSize = utils.MATH.abs(delta);
-
-				updateViewState(deltaSize, Config[delta > 0 ? NEXT : PREV](ctx[NEXT]));
-
-				if (computeDistance(finalValue, ctx.size) !== 0) {
 					const delta = finalValue - ctx.size;
 					const deltaSize = utils.MATH.abs(delta);
 
-					updateViewState(deltaSize, Config[delta > 0 ? PREV : NEXT](ctx));
+					updateViewState(deltaSize, Config[delta > 0 ? NEXT : PREV](ctx[NEXT]));
+
+					if (computeDistance(finalValue, ctx.size) !== 0) {
+						const delta = finalValue - ctx.size;
+						const deltaSize = utils.MATH.abs(delta);
+
+						updateViewState(deltaSize, Config[delta > 0 ? PREV : NEXT](ctx));
+					}
 				}
 
 				return computeDistance(finalValue, ctx.size);

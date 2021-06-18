@@ -35,7 +35,13 @@ export const FIXED_HANDLER_STYLE = {
 	'user-select': 'none'
 };
 
-export const WIN = window, DOC = document, MATH = Math;
+export const
+	WIN = window,
+	DOC = document,
+	MATH = Math,
+	RESIZING = 9,
+	FIX_OFFSET = 8,
+	CONTAINER = 7;
 
 export function createDivElement() {
 	return DOC.createElement('div');

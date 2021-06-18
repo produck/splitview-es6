@@ -77,6 +77,11 @@ export interface SplitviewContainer {
 	direction: string;
 
 	/**
+	 * The container is resizing or not.
+	 */
+	readonly resizing: boolean;
+
+	/**
 	 * The dom of this split view, an element class is `sv-container`.
 	 */
 	readonly element: SplitviewContainerHTMLDivElement;

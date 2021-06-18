@@ -37,7 +37,7 @@ export function SplitviewContainer() {
 			return freeSize - size;
 		}, containerElement[ctx.axis.oS]);
 
-		ctx[HEAD].each(NEXT, viewCtx => viewCtx.fixOffset());
+		ctx[HEAD].each(NEXT, viewCtx => viewCtx[utils.FIX_OFFSET]());
 
 		if (finalFreeSize !== 0) {
 			debouncer = setTimeout(() => console.warn(`Splitview: free ${finalFreeSize}px`), 1000);
@@ -47,22 +47,20 @@ export function SplitviewContainer() {
 	let observer = null;
 
 	function observeContainerSize() {
-		const size = {
-			width: containerElement.offsetWidth,
-			height: containerElement.offsetHeight
-		};
+		let lastWidth = containerElement.offsetWidth;
+		let lastHeight = containerElement.offsetHeight;
 
 		(function observe() {
 			const width = containerElement.offsetWidth;
 			const height = containerElement.offsetHeight;
 
-			if (size.width !== width || size.height !== height) {
+			if (lastWidth !== width || lastHeight !== height) {
 				autoAdjustment();
-				containerElement.dispatchEvent(utils.SplitviewEvent('container-size-change', ctx.container));
+				containerElement.dispatchEvent(utils.SplitviewEvent('container-size-change', ctx[utils.CONTAINER]));
 			}
 
-			size.width = width;
-			size.height = height;
+			lastWidth = width;
+			lastHeight = height;
 			observer = utils.WIN.requestAnimationFrame(observe);
 		}());
 	}
@@ -101,7 +99,7 @@ export function SplitviewContainer() {
 	}
 
 	function assertOwned(view) {
-		if (view.container !== ctx.container) {
+		if (view.container !== ctx[utils.CONTAINER]) {
 			throw new Error('The view does NOT belongs to this container.');
 		}
 	}
@@ -109,7 +107,7 @@ export function SplitviewContainer() {
 	const viewWeakMap = new WeakMap();
 
 	const ctx = {
-		resizing: false,
+		[utils.RESIZING]: false,
 		axis: utils.AXIS_MAP.row,
 		direction: 'row',
 		[HEAD]: null,
@@ -120,10 +118,11 @@ export function SplitviewContainer() {
 		restore() {
 			ctx[HEAD].each(NEXT, ctx => ctx.size = ctx._size);
 		},
-		container: Object.seal({
+		[utils.CONTAINER]: Object.seal({
 			/**
 			 * @param {HTMLElement} element
 			 */
+			get resizing() { return ctx[utils.RESIZING]; },
 			set direction(value) {
 				if (value !== 'row' && value !== 'column') {
 					throw new Error('A direction MUST be `row` or `column`.');
@@ -185,7 +184,7 @@ export function SplitviewContainer() {
 				if (referenceView === null) {
 					appendViewCtx(viewWeakMap.get(referenceView));
 				} else {
-					if (referenceView.container !== ctx.container) {
+					if (referenceView.container !== ctx[utils.CONTAINER]) {
 						throw new Error('The reference view does NOT belongs to this container.');
 					}
 
@@ -228,5 +227,5 @@ export function SplitviewContainer() {
 	ctx[HEAD][NEXT] = ctx[REAR];
 	ctx[REAR][PREV] = ctx[HEAD];
 
-	return ctx.container;
+	return ctx[utils.CONTAINER];
 }
