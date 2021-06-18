@@ -1,5 +1,5 @@
 /*!
- * Splitview v0.1.2
+ * @produck/splitview v0.1.3
  * (c) 2020-2021 ChaosLee
  * Released under the MIT License.
  */
@@ -67,7 +67,13 @@ const FIXED_HANDLER_STYLE = {
 	'user-select': 'none'
 };
 
-const WIN = window, DOC = document, MATH = Math;
+const
+	WIN = window,
+	DOC = document,
+	MATH = Math,
+	RESIZING = 9,
+	FIX_OFFSET = 8,
+	CONTAINER = 7;
 
 function createDivElement() {
 	return DOC.createElement('div');
@@ -235,7 +241,7 @@ function SplitviewView(options, containerCtx) {
 		const initPos = event[axis.p];
 
 		setStyle(DOC.body, { 'cursor': axis.sCV });
-		ctx.resizing = containerCtx.resizing = true;
+		ctx[RESIZING] = containerCtx[RESIZING] = true;
 		containerCtx.snapshot();
 
 		const configMap = {
@@ -265,26 +271,20 @@ function SplitviewView(options, containerCtx) {
 		addEventListener(WIN, 'mouseup', function endResize() {
 			removeEventListener(WIN, 'mousemove', updateViewStateWhenMoving);
 			removeEventListener(WIN, 'mouseup', endResize);
-			setStyle(DOC.body, { 'cursor': 'default' });
-			ctx.resizing = containerCtx.resizing = false;
-			updateHandlerColor();
+			ctx[RESIZING] = containerCtx[RESIZING] = false;
+			updateStyle();
 		});
 	}
 
 	let hover = false;
 
-	function updateHandlerColor() {
-		const resizing = ctx.resizing && containerCtx.resizing;
-		const ready = hover && !containerCtx.resizing;
+	function updateStyle() {
+		const resizing = ctx[RESIZING] && containerCtx[RESIZING];
+		const ready = hover && !containerCtx[RESIZING];
 		const highlight = resizing || ready;
 
-		setStyle(handlerElement, highlight ? {
-			'background-color': '#007fd4',
-			'cursor': containerCtx.axis.sCV,
-		} : {
-			'background-color': null,
-			'cursor': 'default',
-		});
+		setStyle(handlerElement, { 'background-color': highlight ? '#007fd4': null });
+		setStyle(DOC.body, { 'cursor': highlight ? containerCtx.axis.sCV : 'default' });
 	}
 
 	function dispatchRequestAdjustment() {
@@ -294,12 +294,12 @@ function SplitviewView(options, containerCtx) {
 	addEventListener(handlerElement, 'mouseover', () => hover = true);
 	addEventListener(handlerElement, 'mouseout', () => hover = false);
 	addEventListener(handlerElement, 'mousedown', startResize);
-	addEventListener(handlerElement, 'mouseover', updateHandlerColor);
-	addEventListener(handlerElement, 'mouseout', updateHandlerColor);
+	addEventListener(handlerElement, 'mouseover', updateStyle);
+	addEventListener(handlerElement, 'mouseout', updateStyle);
 	addEventListener(handlerElement, 'dblclick', dispatchRequestAdjustment);
 
 	const ctx = {
-		resizing: false,
+		[RESIZING]: false,
 		_size: 0,
 		[PREV]: null,
 		[NEXT]: null,
@@ -311,9 +311,11 @@ function SplitviewView(options, containerCtx) {
 		get size() { return viewElement[containerCtx.axis.oS] + 0.01; },
 		get o() { return viewElement[containerCtx.axis.o]; },
 		set size(value) {
+			value = MATH.trunc(value);
+
 			if (ctx.size !== value) {
 				setStyle(viewElement, { [containerCtx.axis.sS]: `${value}px` });
-				ctx.each(NEXT, sibling => sibling.fixOffset());
+				ctx.each(NEXT, sibling => sibling[FIX_OFFSET]());
 				viewElement.dispatchEvent(SplitviewEvent('view-size-change', ctx.view));
 			}
 		},
@@ -325,9 +327,9 @@ function SplitviewView(options, containerCtx) {
 				sibling = sibling[which];
 			}
 		},
-		fixOffset() {
+		[FIX_OFFSET]() {
 			const { axis } = containerCtx;
-			const offset = ctx[PREV].o + ctx[PREV].size;
+			const offset = MATH.trunc(ctx[PREV].o + ctx[PREV].size);
 
 			setStyle(viewElement, {
 				[axis.sO]: `${offset}px`
@@ -355,7 +357,7 @@ function SplitviewView(options, containerCtx) {
 			ctx.size = ctx.min;
 		},
 		view: Object.seal({
-			get container() { return containerCtx.container; },
+			get container() { return containerCtx[CONTAINER]; },
 			get element() { return viewElement; },
 			get previousSibling() { return ctx[PREV].view; },
 			get nextSibling() { return ctx[NEXT].view; },
@@ -367,20 +369,25 @@ function SplitviewView(options, containerCtx) {
 
 				const finalValue = getMedian(ctx.min, ctx.max, value);
 
-				containerCtx.snapshot();
+				/**
+				 * Not to set view.size if resizing.
+				 */
+				if (!containerCtx[RESIZING]) {
+					if (computeDistance(finalValue, ctx.size) === 0) return 0;
 
-				if (computeDistance(finalValue, ctx.size) === 0) return 0;
+					containerCtx.snapshot();
 
-				const delta = finalValue - ctx.size;
-				const deltaSize = MATH.abs(delta);
-
-				updateViewState(deltaSize, Config[delta > 0 ? NEXT : PREV](ctx[NEXT]));
-
-				if (computeDistance(finalValue, ctx.size) !== 0) {
 					const delta = finalValue - ctx.size;
 					const deltaSize = MATH.abs(delta);
 
-					updateViewState(deltaSize, Config[delta > 0 ? PREV : NEXT](ctx));
+					updateViewState(deltaSize, Config[delta > 0 ? NEXT : PREV](ctx[NEXT]));
+
+					if (computeDistance(finalValue, ctx.size) !== 0) {
+						const delta = finalValue - ctx.size;
+						const deltaSize = MATH.abs(delta);
+
+						updateViewState(deltaSize, Config[delta > 0 ? PREV : NEXT](ctx));
+					}
 				}
 
 				return computeDistance(finalValue, ctx.size);
@@ -426,7 +433,7 @@ function SplitviewContainer() {
 			return freeSize - size;
 		}, containerElement[ctx.axis.oS]);
 
-		ctx[HEAD].each(NEXT, viewCtx => viewCtx.fixOffset());
+		ctx[HEAD].each(NEXT, viewCtx => viewCtx[FIX_OFFSET]());
 
 		if (finalFreeSize !== 0) {
 			debouncer = setTimeout(() => console.warn(`Splitview: free ${finalFreeSize}px`), 1000);
@@ -436,22 +443,20 @@ function SplitviewContainer() {
 	let observer = null;
 
 	function observeContainerSize() {
-		const size = {
-			width: containerElement.offsetWidth,
-			height: containerElement.offsetHeight
-		};
+		let lastWidth = containerElement.offsetWidth;
+		let lastHeight = containerElement.offsetHeight;
 
 		(function observe() {
 			const width = containerElement.offsetWidth;
 			const height = containerElement.offsetHeight;
 
-			if (size.width !== width || size.height !== height) {
+			if (lastWidth !== width || lastHeight !== height) {
 				autoAdjustment();
-				containerElement.dispatchEvent(SplitviewEvent('container-size-change', ctx.container));
+				containerElement.dispatchEvent(SplitviewEvent('container-size-change', ctx[CONTAINER]));
 			}
 
-			size.width = width;
-			size.height = height;
+			lastWidth = width;
+			lastHeight = height;
 			observer = WIN.requestAnimationFrame(observe);
 		}());
 	}
@@ -490,7 +495,7 @@ function SplitviewContainer() {
 	}
 
 	function assertOwned(view) {
-		if (view.container !== ctx.container) {
+		if (view.container !== ctx[CONTAINER]) {
 			throw new Error('The view does NOT belongs to this container.');
 		}
 	}
@@ -498,7 +503,7 @@ function SplitviewContainer() {
 	const viewWeakMap = new WeakMap();
 
 	const ctx = {
-		resizing: false,
+		[RESIZING]: false,
 		axis: AXIS_MAP.row,
 		direction: 'row',
 		[HEAD]: null,
@@ -509,10 +514,11 @@ function SplitviewContainer() {
 		restore() {
 			ctx[HEAD].each(NEXT, ctx => ctx.size = ctx._size);
 		},
-		container: Object.seal({
+		[CONTAINER]: Object.seal({
 			/**
 			 * @param {HTMLElement} element
 			 */
+			get resizing() { return ctx[RESIZING]; },
 			set direction(value) {
 				if (value !== 'row' && value !== 'column') {
 					throw new Error('A direction MUST be `row` or `column`.');
@@ -574,7 +580,7 @@ function SplitviewContainer() {
 				if (referenceView === null) {
 					appendViewCtx(viewWeakMap.get(referenceView));
 				} else {
-					if (referenceView.container !== ctx.container) {
+					if (referenceView.container !== ctx[CONTAINER]) {
 						throw new Error('The reference view does NOT belongs to this container.');
 					}
 
@@ -617,7 +623,7 @@ function SplitviewContainer() {
 	ctx[HEAD][NEXT] = ctx[REAR];
 	ctx[REAR][PREV] = ctx[HEAD];
 
-	return ctx.container;
+	return ctx[CONTAINER];
 }
 
 export { SplitviewContainer as Container };

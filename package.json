@@ -1,6 +1,6 @@
 {
 	"name": "@produck/splitview",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"description": "A splitview implement by only javascript without css and no fortend framework being dependent.",
 	"main": "index.js",
 	"scripts": {
