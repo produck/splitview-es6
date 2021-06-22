@@ -1,3 +1,5 @@
+import { DOC, MATH } from './symbol';
+
 const FIXED_CONTAINER_STYLE = {
 	'display': 'block',
 	'top': '0',
@@ -34,14 +36,6 @@ export const FIXED_HANDLER_STYLE = {
 	'transition-delay': '0.1s',
 	'user-select': 'none'
 };
-
-export const
-	WIN = window,
-	DOC = document,
-	MATH = Math,
-	RESIZING = 9,
-	FIX_OFFSET = 8,
-	CONTAINER = 7;
 
 export function createDivElement() {
 	return DOC.createElement('div');

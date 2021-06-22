@@ -1,10 +1,11 @@
 import * as utils from './utils';
+import { CONTAINER, DOC, FIX_OFFSET, MATH, RESIZING, WIN, AXIS_MAP } from './symbol';
 export const NEXT = 1, PREV = 0;
 
 const GET_SIZE = ctx => ctx._size;
 const GET_MIN = ctx => ctx.min;
 const HANDLER_SIZE = 4;
-
+const C_WHICH = 9, C_PULLED_VIEW = 8, C_LIMIT = 7, C_ORIGIN = 6;
 
 function SUM(ctx, which, getter) {
 	let sum = 0;
@@ -19,26 +20,26 @@ const Config = {
 		const viewCtx = ctx[PREV];
 
 		return {
-			direction: NEXT,
-			pulled: viewCtx,
-			limit: { pull: viewCtx.max, push: SUM(viewCtx, NEXT, GET_MIN) },
-			origin: { pull: viewCtx.size, push: SUM(viewCtx, NEXT, GET_SIZE) }
+			[C_WHICH]: NEXT,
+			[C_PULLED_VIEW]: viewCtx,
+			[C_LIMIT]: { pull: viewCtx.max, push: SUM(viewCtx, NEXT, GET_MIN) },
+			[C_ORIGIN]: { pull: viewCtx.size, push: SUM(viewCtx, NEXT, GET_SIZE) }
 		};
 	},
 	[PREV]: function ConfigPrev(ctx) {
 		const viewCtx = ctx;
 
 		return {
-			direction: PREV,
-			pulled: viewCtx,
-			limit: { pull: viewCtx.max, push: SUM(viewCtx, PREV, GET_MIN) },
-			origin: { pull: viewCtx.size, push: SUM(viewCtx, PREV, GET_SIZE) }
+			[C_WHICH]: PREV,
+			[C_PULLED_VIEW]: viewCtx,
+			[C_LIMIT]: { pull: viewCtx.max, push: SUM(viewCtx, PREV, GET_MIN) },
+			[C_ORIGIN]: { pull: viewCtx.size, push: SUM(viewCtx, PREV, GET_SIZE) }
 		};
 	}
 };
 
 function computeDistance(a, b) {
-	return utils.MATH.trunc(utils.MATH.abs(a - b));
+	return MATH.trunc(MATH.abs(a - b));
 }
 
 export function EndpointView(containerCtx) {
@@ -60,9 +61,13 @@ export function SplitviewView(options, containerCtx) {
 	utils.setHandlerStyle(handlerElement);
 
 	function updateViewState(deltaSize, config) {
-		const { limit, origin, pulled, direction } = config;
+		const {
+			[C_LIMIT]: limit,
+			[C_ORIGIN]: origin,
+			[C_PULLED_VIEW]: pulled
+		} = config;
 
-		pulled.size = utils.MATH.min(
+		pulled.size = MATH.min(
 			limit.pull, // !pullable
 			origin.pull + origin.push - limit.push, // !pushable
 			origin.pull + deltaSize // General
@@ -75,7 +80,7 @@ export function SplitviewView(options, containerCtx) {
 		 * Because number of view changing size a time may be less than last time.
 		 * So use `forEach` not `find`. No need for more optimization.
 		 */
-		pulled.each(direction, ctx => {
+		pulled.each(config[C_WHICH], ctx => {
 			const delta = ctx._size - freeDelta > ctx.min
 				? freeDelta : ctx._size - ctx.min;
 
@@ -85,11 +90,11 @@ export function SplitviewView(options, containerCtx) {
 	}
 
 	function startResize(event) {
-		const { axis } = containerCtx;
+		const { [AXIS_MAP]: axis } = containerCtx;
 		const initPos = event[axis.p];
 
-		utils.setStyle(utils.DOC.body, { 'cursor': axis.sCV });
-		ctx[utils.RESIZING] = containerCtx[utils.RESIZING] = true;
+		utils.setStyle(DOC.body, { 'cursor': axis.sCV });
+		ctx[RESIZING] = containerCtx[RESIZING] = true;
 		containerCtx.snapshot();
 
 		const configMap = {
@@ -111,15 +116,15 @@ export function SplitviewView(options, containerCtx) {
 			containerCtx.restore();
 
 			if (delta !== 0) {
-				updateViewState(utils.MATH.abs(delta), configMap[delta > 0 ? NEXT : PREV]);
+				updateViewState(MATH.abs(delta), configMap[delta > 0 ? NEXT : PREV]);
 			}
 		}
 
-		utils.addEventListener(utils.WIN, 'mousemove', updateViewStateWhenMoving);
-		utils.addEventListener(utils.WIN, 'mouseup', function endResize() {
-			utils.removeEventListener(utils.WIN, 'mousemove', updateViewStateWhenMoving);
-			utils.removeEventListener(utils.WIN, 'mouseup', endResize);
-			ctx[utils.RESIZING] = containerCtx[utils.RESIZING] = false;
+		utils.addEventListener(WIN, 'mousemove', updateViewStateWhenMoving);
+		utils.addEventListener(WIN, 'mouseup', function endResize() {
+			utils.removeEventListener(WIN, 'mousemove', updateViewStateWhenMoving);
+			utils.removeEventListener(WIN, 'mouseup', endResize);
+			ctx[RESIZING] = containerCtx[RESIZING] = false;
 			updateStyle();
 		});
 	}
@@ -127,12 +132,12 @@ export function SplitviewView(options, containerCtx) {
 	let hover = false;
 
 	function updateStyle() {
-		const resizing = ctx[utils.RESIZING] && containerCtx[utils.RESIZING];
-		const ready = hover && !containerCtx[utils.RESIZING];
+		const resizing = ctx[RESIZING] && containerCtx[RESIZING];
+		const ready = hover && !containerCtx[RESIZING];
 		const highlight = resizing || ready;
 
 		utils.setStyle(handlerElement, { 'background-color': highlight ? '#007fd4': null });
-		utils.setStyle(utils.DOC.body, { 'cursor': highlight ? containerCtx.axis.sCV : 'default' });
+		utils.setStyle(DOC.body, { 'cursor': highlight ? containerCtx[AXIS_MAP].sCV : 'default' });
 	}
 
 	function dispatchRequestAdjustment() {
@@ -147,7 +152,7 @@ export function SplitviewView(options, containerCtx) {
 	utils.addEventListener(handlerElement, 'dblclick', dispatchRequestAdjustment);
 
 	const ctx = {
-		[utils.RESIZING]: false,
+		[RESIZING]: false,
 		_size: 0,
 		[PREV]: null,
 		[NEXT]: null,
@@ -156,14 +161,14 @@ export function SplitviewView(options, containerCtx) {
 		get resizable() { return options.max !== options.min; },
 		get eView() { return viewElement; },
 		get eHandler() { return handlerElement; },
-		get size() { return viewElement[containerCtx.axis.oS] + 0.01; },
-		get o() { return viewElement[containerCtx.axis.o]; },
+		get size() { return viewElement[containerCtx[AXIS_MAP].oS] + 0.01; },
+		get o() { return viewElement[containerCtx[AXIS_MAP].o]; },
 		set size(value) {
-			value = utils.MATH.trunc(value);
+			value = MATH.trunc(value);
 
 			if (ctx.size !== value) {
-				utils.setStyle(viewElement, { [containerCtx.axis.sS]: `${value}px` });
-				ctx.each(NEXT, sibling => sibling[utils.FIX_OFFSET]());
+				utils.setStyle(viewElement, { [containerCtx[AXIS_MAP].sS]: `${value}px` });
+				ctx.each(NEXT, sibling => sibling[FIX_OFFSET]());
 				viewElement.dispatchEvent(utils.SplitviewEvent('view-size-change', ctx.view));
 			}
 		},
@@ -175,9 +180,9 @@ export function SplitviewView(options, containerCtx) {
 				sibling = sibling[which];
 			}
 		},
-		[utils.FIX_OFFSET]() {
-			const { axis } = containerCtx;
-			const offset = utils.MATH.trunc(ctx[PREV].o + ctx[PREV].size);
+		[FIX_OFFSET]() {
+			const { [AXIS_MAP]: axis } = containerCtx;
+			const offset = MATH.trunc(ctx[PREV].o + ctx[PREV].size);
 
 			utils.setStyle(viewElement, {
 				[axis.sO]: `${offset}px`
@@ -188,7 +193,7 @@ export function SplitviewView(options, containerCtx) {
 			});
 		},
 		relayout() {
-			const { axis } = containerCtx;
+			const { [AXIS_MAP]: axis } = containerCtx;
 
 			utils.setStyle(viewElement, {
 				[axis.cSS]: '100%',
@@ -205,11 +210,11 @@ export function SplitviewView(options, containerCtx) {
 			ctx.size = ctx.min;
 		},
 		view: Object.seal({
-			get container() { return containerCtx[utils.CONTAINER]; },
+			get container() { return containerCtx[CONTAINER]; },
 			get element() { return viewElement; },
 			get previousSibling() { return ctx[PREV].view; },
 			get nextSibling() { return ctx[NEXT].view; },
-			get size() { return utils.MATH.trunc(ctx.size); },
+			get size() { return MATH.trunc(ctx.size); },
 			setSize(value) {
 				if (typeof value !== 'number') {
 					throw new Error('A view size MUST be a number.');
@@ -220,19 +225,19 @@ export function SplitviewView(options, containerCtx) {
 				/**
 				 * Not to set view.size if resizing.
 				 */
-				if (!containerCtx[utils.RESIZING]) {
+				if (!containerCtx[RESIZING]) {
 					if (computeDistance(finalValue, ctx.size) === 0) return 0;
 
 					containerCtx.snapshot();
 
 					const delta = finalValue - ctx.size;
-					const deltaSize = utils.MATH.abs(delta);
+					const deltaSize = MATH.abs(delta);
 
 					updateViewState(deltaSize, Config[delta > 0 ? NEXT : PREV](ctx[NEXT]));
 
 					if (computeDistance(finalValue, ctx.size) !== 0) {
 						const delta = finalValue - ctx.size;
-						const deltaSize = utils.MATH.abs(delta);
+						const deltaSize = MATH.abs(delta);
 
 						updateViewState(deltaSize, Config[delta > 0 ? PREV : NEXT](ctx));
 					}

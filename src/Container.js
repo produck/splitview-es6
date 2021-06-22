@@ -1,6 +1,7 @@
 import { normalizeViewOptions } from './normalize';
 import { SplitviewView, EndpointView, NEXT, PREV } from './View';
 import * as utils from './utils';
+import { CONTAINER, MATH, FIX_OFFSET, RESIZING, WIN, AXIS_MAP } from './symbol';
 
 const HEAD = 0, REAR = 1;
 
@@ -29,15 +30,15 @@ export function SplitviewContainer() {
 
 		const finalFreeSize = viewCtxList.reduce((freeSize, viewCtx, index) => {
 			const totalSize = viewCtxList.slice(index).reduce((sum, view) => sum + view.size, 0);
-			const targetSize = utils.MATH.round(viewCtx.size / totalSize * freeSize);
+			const targetSize = MATH.round(viewCtx.size / totalSize * freeSize);
 			const size = utils.getMedian(viewCtx.min, viewCtx.max, targetSize);
 
 			viewCtx.size = size;
 
 			return freeSize - size;
-		}, containerElement[ctx.axis.oS]);
+		}, containerElement[ctx[AXIS_MAP].oS]);
 
-		ctx[HEAD].each(NEXT, viewCtx => viewCtx[utils.FIX_OFFSET]());
+		ctx[HEAD].each(NEXT, viewCtx => viewCtx[FIX_OFFSET]());
 
 		if (finalFreeSize !== 0) {
 			debouncer = setTimeout(() => console.warn(`Splitview: free ${finalFreeSize}px`), 1000);
@@ -56,12 +57,12 @@ export function SplitviewContainer() {
 
 			if (lastWidth !== width || lastHeight !== height) {
 				autoAdjustment();
-				containerElement.dispatchEvent(utils.SplitviewEvent('container-size-change', ctx[utils.CONTAINER]));
+				containerElement.dispatchEvent(utils.SplitviewEvent('container-size-change', ctx[CONTAINER]));
 			}
 
 			lastWidth = width;
 			lastHeight = height;
-			observer = utils.WIN.requestAnimationFrame(observe);
+			observer = WIN.requestAnimationFrame(observe);
 		}());
 	}
 
@@ -72,8 +73,8 @@ export function SplitviewContainer() {
 	function relayout() {
 		if (containerElement.parentElement !== null) {
 			utils.setStyle(handlerContainerElement, {
-				[ctx.axis.cSS]: '100%',
-				[ctx.axis.sS]: '0'
+				[ctx[AXIS_MAP].cSS]: '100%',
+				[ctx[AXIS_MAP].sS]: '0'
 			});
 
 			ctx[HEAD].each(NEXT, view => view.relayout());
@@ -99,7 +100,7 @@ export function SplitviewContainer() {
 	}
 
 	function assertOwned(view) {
-		if (view.container !== ctx[utils.CONTAINER]) {
+		if (view.container !== ctx[CONTAINER]) {
 			throw new Error('The view does NOT belongs to this container.');
 		}
 	}
@@ -107,8 +108,8 @@ export function SplitviewContainer() {
 	const viewWeakMap = new WeakMap();
 
 	const ctx = {
-		[utils.RESIZING]: false,
-		axis: utils.AXIS_MAP.row,
+		[RESIZING]: false,
+		[AXIS_MAP]: utils.AXIS_MAP.row,
 		direction: 'row',
 		[HEAD]: null,
 		[REAR]: null,
@@ -118,11 +119,11 @@ export function SplitviewContainer() {
 		restore() {
 			ctx[HEAD].each(NEXT, ctx => ctx.size = ctx._size);
 		},
-		[utils.CONTAINER]: Object.seal({
+		[CONTAINER]: Object.seal({
 			/**
 			 * @param {HTMLElement} element
 			 */
-			get resizing() { return ctx[utils.RESIZING]; },
+			get resizing() { return ctx[RESIZING]; },
 			set direction(value) {
 				if (value !== 'row' && value !== 'column') {
 					throw new Error('A direction MUST be `row` or `column`.');
@@ -133,7 +134,7 @@ export function SplitviewContainer() {
 				}
 
 				ctx.direction = value;
-				ctx.axis = utils.AXIS_MAP[value];
+				ctx[AXIS_MAP] = utils.AXIS_MAP[value];
 				relayout();
 			},
 			get direction() { return ctx.direction; },
@@ -184,7 +185,7 @@ export function SplitviewContainer() {
 				if (referenceView === null) {
 					appendViewCtx(viewWeakMap.get(referenceView));
 				} else {
-					if (referenceView.container !== ctx[utils.CONTAINER]) {
+					if (referenceView.container !== ctx[CONTAINER]) {
 						throw new Error('The reference view does NOT belongs to this container.');
 					}
 
@@ -227,5 +228,5 @@ export function SplitviewContainer() {
 	ctx[HEAD][NEXT] = ctx[REAR];
 	ctx[REAR][PREV] = ctx[HEAD];
 
-	return ctx[utils.CONTAINER];
+	return ctx[CONTAINER];
 }
