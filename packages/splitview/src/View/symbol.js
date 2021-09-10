@@ -1,5 +1,6 @@
 export const
 	CONTAINER = 'c',
+	AXIS = 'x',
 
 	HANDLER_ELEMENT = 'h',
 	VIEW_ELEMENT = 'e',
@@ -22,4 +23,5 @@ export const
 	START_RESIZING = 'S',
 	FOR_EACH = 'E',
 	RESET = 'R',
-	FIX_OFFSET = 'F';
+	FIX_OFFSET = 'F',
+	DESTROY = 'D';

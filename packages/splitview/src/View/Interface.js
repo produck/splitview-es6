@@ -1,11 +1,12 @@
 import { SplitviewViewContext } from './Context';
+
 import * as $V from './symbol';
-import * as $C from '../symbol';
+import * as $C from '../Container/symbol';
 
 /**
- * @type {Map<SplitviewViewInterface, SplitviewViewContext>}
+ * @type {WeakMap<SplitviewViewInterface, SplitviewViewContext>}
  */
-const map = new Map();
+const map = new WeakMap();
 
 /**
  * @param {SplitviewViewInterface} iView
@@ -14,10 +15,11 @@ export const _ = iView => map.get(iView);
 
 export class SplitviewViewInterface {
 	/**
-	 * @param {import('../Context').SplitviewContainerContext} containerContext
+	 * @param {import('../Container/Context').SplitviewContainerContext} containerContext
 	 */
 	constructor(containerContext) {
 		map.set(this, new SplitviewViewContext(this, containerContext));
+		Object.seal(this);
 	}
 
 	get element() {
@@ -37,27 +39,43 @@ export class SplitviewViewInterface {
 	}
 
 	get size() {
-
+		return _(this)[$V.SIZE];
 	}
 
 	get min() {
-
+		return _(this)[$V.MIN];
 	}
 
 	set min(value) {
+		if (typeof value !== 'number') {
+			throw new Error('A number expected.');
+		}
 
+		value = Math.trunc(value);
+
+		if (this.size < value) {
+			this.setSize(value);
+		}
+
+		_(this)[$V.MIN] = value;
 	}
 
 	get max() {
-
+		return _(this)[$V.MAX];
 	}
 
 	set max(value) {
+		if (typeof value !== 'number') {
+			throw new Error('A number expected.');
+		}
 
-	}
+		value = Math.trunc(value);
 
-	destroy() {
+		if (this.size > value) {
+			this.setSize(value);
+		}
 
+		_(this)[$V.MAX] = value;
 	}
 
 	setSize(value) {

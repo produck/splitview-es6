@@ -1,8 +1,12 @@
 import * as Dom from '../utils/dom';
 import * as Style from './style';
+
+import { SplitviewBaseViewContext } from '../View/Context';
+import { MAP as AXIS_MAP } from '../Axis';
+
 import * as $C from './symbol';
-import * as $V from './View/symbol';
-import { MAP as AXIS_MAP, $ as $a } from './axis';
+import * as $V from '../View/symbol';
+import * as $a from '../Axis/symbol';
 
 export class SplitviewContainerContext {
 	/**
@@ -24,44 +28,24 @@ export class SplitviewContainerContext {
 		this[$C.VIEW_CONTAINER_ELEMENT] = viewContainerElement;
 		this[$C.HANDLER_CONTAINER_ELEMENT] = handlerContainerElement;
 
-		this[$C.SIZE_CHECKING_DEBOUNCER] = null;
-		this[$C.SIZE_WATCHER] = null;
+		const
+			headView = new SplitviewBaseViewContext(this),
+			rearView = new SplitviewBaseViewContext(this);
 
-		this[$C.RESIZING] = false;
+		headView[$V.NEXT] = rearView;
+		rearView[$V.PREVIOUS] = headView;
 
-		/**
-		 * @type {Map<
-		 * 	import('./View/Interface').SplitviewViewInterface,
-		 * 	import('./View/Context').SplitviewViewContext
-		 * >}
-		 */
-		this[$C.VIEW_MAP] = new Map();
+		this[$C.HEAD_VIEW] = headView;
+		this[$C.REAR_VIEW] = rearView;
 
 		/**
 		 * @type {'row' | 'column'}
 		 */
-		this[$C.DIRECTION_FLAG] = 'row';
-
-		this[$C.HEAD_VIEW] = null;
-		this[$C.REAR_VIEW] = null;
-
-		this[$C.LAST_WIDTH] = 0;
-		this[$C.LAST_HEIGHT] = 0;
+		this[$C.DIRECTION] = 'row';
 	}
 
 	get [$C.AXIS]() {
-		return AXIS_MAP[this[$C.DIRECTION_FLAG]];
-	}
-
-	set [$C.DIRECTION](value) {
-		if (value !== this[$C.DIRECTION]) {
-			this[$C.DIRECTION_FLAG] = value;
-			this[$C.RESET]();
-		}
-	}
-
-	get [$C.DIRECTION]() {
-		return this[$C.DIRECTION_FLAG];
+		return AXIS_MAP[this[$C.DIRECTION]];
 	}
 
 	[$C.RESET]() {
@@ -80,25 +64,6 @@ export class SplitviewContainerContext {
 
 	}
 
-	[$C.UPDATE_LAST_SIZE]() {
-		const viewContainerElement = this[$C.VIEW_CONTAINER_ELEMENT];
-
-		if (!Dom.hasParentElement(viewContainerElement)) {
-			return;
-		}
-
-		const {
-			offsetHeight: height,
-			offsetWidth: width
-		} = viewContainerElement;
-
-		if (this[$C.LAST_WIDTH] !== width || this[$C.LAST_HEIGHT] !== height) {
-			this[$C.ADJUST]();
-			this[$C.LAST_WIDTH] = width;
-			this[$C.LAST_HEIGHT] = height;
-		}
-	}
-
 	/**
 	 * @param {HTMLElement} element
 	 */
@@ -109,11 +74,13 @@ export class SplitviewContainerContext {
 	[$C.UNMOUNT]() {
 		const viewContainerElement = this[$C.VIEW_CONTAINER_ELEMENT];
 
-		Dom.removeChild(viewContainerElement.parentElement, viewContainerElement);
+		if (Dom.hasParentElement(viewContainerElement)) {
+			Dom.removeChild(viewContainerElement.parentElement, viewContainerElement);
+		}
 	}
 
 	/**
-	 * @param {import('./View/Context').SplitviewViewContext} view
+	 * @param {import('../View/Context').SplitviewViewContext} view
 	 */
 	[$C.APPEND_VIEW](view) {
 		view[$V.PREVIOUS] = this[$C.REAR_VIEW][$V.PREVIOUS];
@@ -124,7 +91,7 @@ export class SplitviewContainerContext {
 	}
 
 	/**
-	 * @param {import('./View/Context').SplitviewViewContext} view
+	 * @param {import('../View/Context').SplitviewViewContext} view
 	 */
 	[$C.REMOVE_VIEW](view) {
 		view[$V.PREVIOUS][$V.NEXT] = view[$V.NEXT];
@@ -135,11 +102,52 @@ export class SplitviewContainerContext {
 	}
 
 	/**
-	 * @param {import('./View/Context').SplitviewViewContext} view
+	 * @param {import('../View/Context').SplitviewViewContext} newView
+	 * @param {import('../View/Context').SplitviewViewContext} referenceView
 	 */
-	[$C.ASSERT_OWNED_VIEW](view, role = 'view') {
-		if (view[$V.CONTAINER] !== this) {
-			throw new Error(`The ${role} is NOT in container.`);
+	[$C.INSERT_BEFORE](newView, referenceView) {
+		newView[$V.NEXT] = referenceView;
+		newView[$V.PREVIOUS] = referenceView[$V.PREVIOUS];
+		referenceView[$V.PREVIOUS][$V.NEXT] = referenceView[$V.PREVIOUS] = newView;
+
+		Dom.insertBefore(
+			this[$C.VIEW_CONTAINER_ELEMENT],
+			newView[$V.VIEW_ELEMENT],
+			referenceView[$V.VIEW_ELEMENT]
+		);
+
+		Dom.insertBefore(
+			this[$C.HANDLER_CONTAINER_ELEMENT],
+			newView[$V.HANDLER_ELEMENT],
+			referenceView[$V.HANDLER_ELEMENT]
+		);
+	}
+
+	/**
+	 * @param {import('../View/Context').SplitviewViewContext} view
+	 */
+	[$C.ASSERT_OWNED_VIEW](view, role = null) {
+		const list = ['The'];
+
+		if (role) {
+			list.push(role);
 		}
+
+		list.push('view is NOT in container.');
+
+		if (view[$V.CONTAINER] !== this) {
+			throw new Error(list.join(' '));
+		}
+	}
+
+	[$C.SIZE_MAP]() {
+		/**
+		 * @type {Map<import('../View/Context').SplitviewViewContext, number>}
+		 */
+		const map = new Map();
+
+		this[$C.HEAD_VIEW][$V.FOR_EACH](view => map.set(view, view.size));
+
+		return map;
 	}
 }

@@ -1,26 +1,17 @@
 import { SplitviewContainerContext } from './Context';
-import { SplitviewViewInterface, _ as _v } from './View/Interface';
+import { SplitviewViewInterface, _ as _v } from '../View/Interface';
 import * as $C from './symbol';
-import * as $V from './View/symbol';
+import * as $V from '../View/symbol';
 
 /**
- * @type {Map<SplitviewContainerInterface, SplitviewContainerContext>}
+ * @type {WeakMap<SplitviewContainerInterface, SplitviewContainerContext>}
  */
-const map = new Map();
+const map = new WeakMap();
 
 /**
  * @param {SplitviewContainerInterface} containerInterface
  */
-const _c = containerInterface => map.get(containerInterface);
-
-(function observe() {
-	for (const [, context] of map) {
-		context[$C.UPDATE_LAST_SIZE]();
-	}
-
-	requestAnimationFrame(observe);
-}());
-
+const _ = containerInterface => map.get(containerInterface);
 const DIRECTION_REG = /^(row|column)$/;
 
 export class SplitviewContainerInterface {
@@ -30,11 +21,11 @@ export class SplitviewContainerInterface {
 	}
 
 	get element() {
-		return _c(this)[$C.VIEW_CONTAINER_ELEMENT];
+		return _(this)[$C.VIEW_CONTAINER_ELEMENT];
 	}
 
 	get direction() {
-		return _c(this)[$C.DIRECTION];
+		return _(this)[$C.DIRECTION];
 	}
 
 	set direction(value) {
@@ -42,45 +33,61 @@ export class SplitviewContainerInterface {
 			throw new Error('A direction MUST be `row` or `column`.');
 		}
 
-		_c(this)[$C.DIRECTION] = value;
+		const _this = _(this);
+
+		if (value !== this[$C.DIRECTION]) {
+			_this[$C.DIRECTION] = value;
+			_this[$C.RESET]();
+		}
 	}
 
 	get firstView() {
-		return _c(this)[$C.HEAD_VIEW][$V.NEXT][$V.INTERFACE];
+		return _(this)[$C.HEAD_VIEW][$V.NEXT][$V.INTERFACE];
 	}
 
 	get lastView() {
-		return _c(this)[$C.REAR_VIEW][$V.PREVIOUS][$V.INTERFACE];
+		return _(this)[$C.REAR_VIEW][$V.PREVIOUS][$V.INTERFACE];
 	}
 
 	get viewList() {
+		const list = [];
 
+		_(this)[$C.HEAD_VIEW][$V.FOR_EACH](view => list.push(view[$V.INTERFACE]));
+
+		return list;
 	}
 
 	/**
 	 * @param {HTMLElement} element
 	 */
 	mount(element) {
-		_c(this)[$C.MOUNT](element);
-		_c(this)[$C.RESET]();
+		const _this = _(this);
+
+		_this[$C.MOUNT](element);
+		_this[$C.RESET]();
 	}
 
 	destroy() {
-		map.delete(this);
-		_c(this)[$C.UNMOUNT]();
+		_(this)[$C.UNMOUNT]();
 	}
 
 	reset() {
-		_c(this)[$C.RESET]();
+		_(this)[$C.RESET]();
+	}
+
+	adjust() {
+		_(this)[$C.ADJUST]();
 	}
 
 	/**
 	 * @param {SplitviewViewInterface} view
 	 */
 	appendView(view) {
-		_c(this)[$C.ASSERT_OWNED_VIEW](_v(view));
-		_c(this)[$C.APPEND_VIEW](_v(view));
-		_c(this)[$C.ADJUST]();
+		const _this = _(this), _view = _v(view);
+
+		_this[$C.ASSERT_OWNED_VIEW](_view);
+		_this[$C.APPEND_VIEW](_view);
+		_this[$C.RESET]();
 
 		return view;
 	}
@@ -89,9 +96,11 @@ export class SplitviewContainerInterface {
 	 * @param {SplitviewViewInterface} view
 	 */
 	removeView(view) {
-		_c(this)[$C.ASSERT_OWNED_VIEW](_v(view));
-		_c(this)[$C.REMOVE_VIEW](_v(view));
-		_c(this)[$C.ADJUST]();
+		const _this = _(this), _view = _v(view);
+
+		_this[$C.ASSERT_OWNED_VIEW](_view);
+		_this[$C.REMOVE_VIEW](_view);
+		_this[$C.RESET]();
 
 		return view;
 	}
@@ -101,11 +110,32 @@ export class SplitviewContainerInterface {
 	 * @param {SplitviewViewInterface | null} referenceView
 	 */
 	insertBefore(newView, referenceView = null) {
-		_c(this)[$C.ASSERT_OWNED_VIEW](_v(newView));
+		const _this = _(this);
+		const newViewContext = _v(newView);
 
+		_this[$C.ASSERT_OWNED_VIEW](newViewContext, 'new');
+
+		if (referenceView === null) {
+			_this[$C.APPEND_VIEW](newViewContext);
+		} else {
+			const referenceViewContext = _v(referenceView);
+
+			_this[$C.ASSERT_OWNED_VIEW](referenceViewContext, 'reference');
+			//TODO is in view list;
+
+			if (newViewContext[$V.PREVIOUS] !== null) {
+				_this[$C.REMOVE_VIEW](newViewContext);
+			}
+
+			_this[$C.INSERT_BEFORE](newViewContext, referenceViewContext);
+		}
+
+		_this[$C.RESET]();
+
+		return newView;
 	}
 
 	createView() {
-		return new SplitviewViewInterface(_c(this));
+		return new SplitviewViewInterface(_(this));
 	}
 }

@@ -1,6 +1,6 @@
 import * as $ from './symbol';
 
-const MAP = {
+export const MAP = {
 	row: {
 		[$.PROPERTY_POSITION]: 'clientX',
 		[$.PROPERTY_SIZE]: 'offsetWidth',
@@ -20,5 +20,3 @@ const MAP = {
 		[$.CROSS_STYLE_OFFSET]: 'left'
 	}
 };
-
-export { MAP, $ };

@@ -1,6 +1,8 @@
 {
   "packages": [
-    "packages/splitview"
+    "packages/splitview",
+		"packages/example/rollup",
+		"packages/example/webpack"
   ],
   "version": "independent"
 }
