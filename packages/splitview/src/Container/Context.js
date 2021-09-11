@@ -1,16 +1,35 @@
+import * as Lang from '../utils/lang';
 import * as Dom from '../utils/dom';
-import * as Style from './style';
 
 import { SplitviewBaseViewContext } from '../View/Context';
-import { MAP as AXIS_MAP } from '../Axis';
+import { MAP as AXIS_MAP } from '../Axis/index';
 
 import * as $C from './symbol';
 import * as $V from '../View/symbol';
 import * as $a from '../Axis/symbol';
 
+/** @typedef {import('./Interface').SplitviewContainerInterface} SplitviewContainerInterface */
+/** @typedef {import('../View/Context').SplitviewViewContext} SplitviewViewContext */
+
+/**
+ * @param {SplitviewViewContext} a
+ * @param {SplitviewViewContext} b
+ */
+const sortViewBySpan = (a, b) => (a[$V.MAX] - a[$V.MIN]) - (b[$V.MAX] - b[$V.MIN]);
+
+/**
+ * @param {SplitviewViewContext} view
+ */
+const fixViewOffset = view =>  view[$V.FIX_OFFSET]();
+
+/**
+ * @param {SplitviewViewContext} view
+ */
+const resetView = view => view[$V.RESET]();
+
 export class SplitviewContainerContext {
 	/**
-	 * @param {import('./Interface').SplitviewContainerInterface} containerInterface
+	 * @param {SplitviewContainerInterface} containerInterface
 	 */
 	constructor(containerInterface) {
 		this[$C.INTERFACE] = containerInterface;
@@ -19,10 +38,8 @@ export class SplitviewContainerContext {
 			viewContainerElement = Dom.createDivElement(),
 			handlerContainerElement = Dom.createDivElement();
 
-		Dom.setClassName(viewContainerElement, 'sv-container');
-		Dom.setClassName(handlerContainerElement, 'sv-handler-container');
-		Dom.setStyle(viewContainerElement, Style.FIXED_VIEW_CONTAINER_STYLE);
-		Dom.setStyle(handlerContainerElement, Style.FIXED_HANDLER_CONTAINER_STYLE);
+		Dom.addClass(viewContainerElement, 'sv-container');
+		Dom.addClass(handlerContainerElement, 'sv-handler-container');
 		Dom.appendChild(viewContainerElement, handlerContainerElement);
 
 		this[$C.VIEW_CONTAINER_ELEMENT] = viewContainerElement;
@@ -42,6 +59,8 @@ export class SplitviewContainerContext {
 		 * @type {'row' | 'column'}
 		 */
 		this[$C.DIRECTION] = 'row';
+
+		this[$C.ADJUSTMENT_DEBOUNCER] = null;
 	}
 
 	get [$C.AXIS]() {
@@ -55,13 +74,42 @@ export class SplitviewContainerContext {
 		});
 
 		if (Dom.hasParentElement(this[$C.VIEW_CONTAINER_ELEMENT])) {
-			//TODO view ADJUST
+			this[$C.HEAD_VIEW][$V.FOR_EACH](resetView);
 			this[$C.ADJUST]();
 		}
 	}
 
 	[$C.ADJUST]() {
+		clearTimeout(this[$C.ADJUSTMENT_DEBOUNCER]);
 
+		/**
+		 * @type {SplitviewViewContext[]}
+		 */
+		const viewList = [];
+		const headView = this[$C.HEAD_VIEW];
+
+		headView[$V.FOR_EACH](view => viewList.push(view));
+		viewList.sort(sortViewBySpan);
+
+		const finalFreeSize = viewList.reduce((freeSize, view, index) => {
+			const totalSize = viewList
+				.slice(index)
+				.reduce((totalSize, view) => totalSize + view[$V.SIZE], 0);
+
+			const targetSize = Lang.MATH_ROUND(view[$V.SIZE] / totalSize * freeSize);
+			const size = Lang.MATH_CLIP(view[$V.MIN], view[$V.MAX], targetSize);
+
+			view[$V.SIZE] = size;
+
+			return freeSize - size;
+		});
+
+		headView[$V.FOR_EACH](fixViewOffset);
+
+		if (finalFreeSize > 0) {
+			this[$C.ADJUSTMENT_DEBOUNCER] =
+				setTimeout(() => console.warn(`Free ${finalFreeSize}px`), 1000);
+		}
 	}
 
 	/**
@@ -75,12 +123,12 @@ export class SplitviewContainerContext {
 		const viewContainerElement = this[$C.VIEW_CONTAINER_ELEMENT];
 
 		if (Dom.hasParentElement(viewContainerElement)) {
-			Dom.removeChild(viewContainerElement.parentElement, viewContainerElement);
+			Dom.removeChild(Dom.getParentElement(viewContainerElement), viewContainerElement);
 		}
 	}
 
 	/**
-	 * @param {import('../View/Context').SplitviewViewContext} view
+	 * @param {SplitviewViewContext} view
 	 */
 	[$C.APPEND_VIEW](view) {
 		view[$V.PREVIOUS] = this[$C.REAR_VIEW][$V.PREVIOUS];
@@ -91,7 +139,7 @@ export class SplitviewContainerContext {
 	}
 
 	/**
-	 * @param {import('../View/Context').SplitviewViewContext} view
+	 * @param {SplitviewViewContext} view
 	 */
 	[$C.REMOVE_VIEW](view) {
 		view[$V.PREVIOUS][$V.NEXT] = view[$V.NEXT];
@@ -102,8 +150,8 @@ export class SplitviewContainerContext {
 	}
 
 	/**
-	 * @param {import('../View/Context').SplitviewViewContext} newView
-	 * @param {import('../View/Context').SplitviewViewContext} referenceView
+	 * @param {SplitviewViewContext} newView
+	 * @param {SplitviewViewContext} referenceView
 	 */
 	[$C.INSERT_BEFORE](newView, referenceView) {
 		newView[$V.NEXT] = referenceView;
@@ -124,7 +172,7 @@ export class SplitviewContainerContext {
 	}
 
 	/**
-	 * @param {import('../View/Context').SplitviewViewContext} view
+	 * @param {SplitviewViewContext} view
 	 */
 	[$C.ASSERT_OWNED_VIEW](view, role = null) {
 		const list = ['The'];
@@ -136,13 +184,13 @@ export class SplitviewContainerContext {
 		list.push('view is NOT in container.');
 
 		if (view[$V.CONTAINER] !== this) {
-			throw new Error(list.join(' '));
+			Lang.THROW(list.join(' '));
 		}
 	}
 
 	[$C.SIZE_MAP]() {
 		/**
-		 * @type {Map<import('../View/Context').SplitviewViewContext, number>}
+		 * @type {Map<SplitviewViewContext, number>}
 		 */
 		const map = new Map();
 

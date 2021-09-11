@@ -20,8 +20,9 @@ export const
 
 export const
 	UPDATE_VIEW_STATE = 'U',
-	START_RESIZING = 'S',
-	FOR_EACH = 'E',
+	RESIZE_BY_EVENT = 'E',
+	RESIZE_BY_CALLING = 'C',
+	FOR_EACH = 'F',
 	RESET = 'R',
-	FIX_OFFSET = 'F',
+	FIX_OFFSET = 'O',
 	DESTROY = 'D';

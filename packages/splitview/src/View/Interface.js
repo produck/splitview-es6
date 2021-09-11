@@ -1,12 +1,16 @@
+import * as Lang from '../utils/lang';
+import * as Type from '../utils/type';
 import { SplitviewViewContext } from './Context';
 
 import * as $V from './symbol';
 import * as $C from '../Container/symbol';
 
+/** @typedef {import('../Container/Context').SplitviewContainerContext} SplitviewContainerContext */
+
 /**
  * @type {WeakMap<SplitviewViewInterface, SplitviewViewContext>}
  */
-const map = new WeakMap();
+const map = Lang.WEAKMAP();
 
 /**
  * @param {SplitviewViewInterface} iView
@@ -15,11 +19,11 @@ export const _ = iView => map.get(iView);
 
 export class SplitviewViewInterface {
 	/**
-	 * @param {import('../Container/Context').SplitviewContainerContext} containerContext
+	 * @param {SplitviewContainerContext} containerContext
 	 */
 	constructor(containerContext) {
 		map.set(this, new SplitviewViewContext(this, containerContext));
-		Object.seal(this);
+		Lang.OBJECT_SEAL(this);
 	}
 
 	get element() {
@@ -47,11 +51,11 @@ export class SplitviewViewInterface {
 	}
 
 	set min(value) {
-		if (typeof value !== 'number') {
-			throw new Error('A number expected.');
+		if (Type.isNumber(value)) {
+			Lang.THROW('A number expected.');
 		}
 
-		value = Math.trunc(value);
+		value = Lang.MATH_TRUNC(value);
 
 		if (this.size < value) {
 			this.setSize(value);
@@ -65,11 +69,11 @@ export class SplitviewViewInterface {
 	}
 
 	set max(value) {
-		if (typeof value !== 'number') {
-			throw new Error('A number expected.');
+		if (Type.isNumber(value)) {
+			Lang.THROW('A number expected.');
 		}
 
-		value = Math.trunc(value);
+		value = Lang.MATH_TRUNC(value);
 
 		if (this.size > value) {
 			this.setSize(value);
@@ -79,9 +83,14 @@ export class SplitviewViewInterface {
 	}
 
 	setSize(value) {
-		if (typeof value !== 'number') {
-			throw new Error('A view size MUST be a number.');
+		if (Type.isNumber(value)) {
+			Lang.THROW('A view size MUST be a number.');
 		}
 
+		const _this = _(this);
+
+		_this[$V.RESIZE_BY_CALLING](Lang.MATH_TRUNC(value));
+
+		return Lang.MATH_ABS(value - _this[$V.SIZE]);
 	}
 }

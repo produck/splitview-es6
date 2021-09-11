@@ -2,37 +2,43 @@ export const
 	WINDOW = window,
 	DOCUMENT = document;
 
-/**
- * @param {HTMLElement} parentElement
- * @param {HTMLElement} childElement
- */
-export function appendChild(parentElement, childElement) {
-	parentElement.appendChild(childElement);
-}
+export const
+	BODY = DOCUMENT.body;
 
 /**
  * @param {HTMLElement} parentElement
  * @param {HTMLElement} childElement
  */
-export function removeChild(parentElement, childElement) {
+export const appendChild = (parentElement, childElement) => {
+	parentElement.appendChild(childElement);
+};
+
+/**
+ * @param {HTMLElement} parentElement
+ * @param {HTMLElement} childElement
+ */
+export const removeChild = (parentElement, childElement) => {
 	parentElement.removeChild(childElement);
-}
+};
 
 /**
  * @param {HTMLElement} parentElement
  * @param {HTMLElement} newChild
  * @param {HTMLElement} refChild
  */
-export function insertBefore(parentElement, newChild, refChild) {
+export const insertBefore = (parentElement, newChild, refChild) => {
 	parentElement.insertBefore(newChild, refChild);
-}
+};
 
 /**
  * @param {HTMLElement} element
  */
-export function hasParentElement(element) {
-	return element.parentElement !== null;
-}
+export const getParentElement = (element) => element.parentElement;
+
+/**
+ * @param {HTMLElement} element
+ */
+export const hasParentElement = (element) => getParentElement(element) !== null;
 
 /**
  * @param {HTMLElement} element
@@ -46,27 +52,25 @@ export const addClass = (element, name) => element.classList.add(name);
  */
 export const removeClass = (element, name) => element.classList.remove(name);
 
-export function createDivElement() {
-	return DOCUMENT.createElement('div');
-}
+export const createDivElement = () => DOCUMENT.createElement('div');
 
-export function setClassName(element, value) {
+export const setClassName = (element, value) => {
 	element.className = value;
-}
+};
 
-export function addEventListener(element, eventType, listener) {
+export const addEventListener = (element, eventType, listener) => {
 	element.addEventListener(eventType, listener);
-}
+};
 
-export function removeEventListener(element, eventType, listener) {
+export const removeEventListener = (element, eventType, listener) => {
 	element.removeEventListener(eventType, listener);
-}
+};
 
 /**
  * @param {HTMLDivElement} element
  */
-export function setStyle(element, style) {
+export const setStyle = (element, style) => {
 	for (const property in style) {
 		element.style.setProperty(property, style[property], 'important');
 	}
-}
+};

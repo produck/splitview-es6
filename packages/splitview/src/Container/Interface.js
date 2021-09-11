@@ -1,12 +1,14 @@
+import * as Lang from '../utils/lang';
 import { SplitviewContainerContext } from './Context';
 import { SplitviewViewInterface, _ as _v } from '../View/Interface';
+
 import * as $C from './symbol';
 import * as $V from '../View/symbol';
 
 /**
  * @type {WeakMap<SplitviewContainerInterface, SplitviewContainerContext>}
  */
-const map = new WeakMap();
+const map = Lang.WEAKMAP();
 
 /**
  * @param {SplitviewContainerInterface} containerInterface
@@ -17,7 +19,7 @@ const DIRECTION_REG = /^(row|column)$/;
 export class SplitviewContainerInterface {
 	constructor() {
 		map.set(this, new SplitviewContainerContext(this));
-		Object.seal(this);
+		Lang.OBJECT_SEAL(this);
 	}
 
 	get element() {
@@ -30,7 +32,7 @@ export class SplitviewContainerInterface {
 
 	set direction(value) {
 		if (!DIRECTION_REG.test(value)) {
-			throw new Error('A direction MUST be `row` or `column`.');
+			Lang.THROW('A direction MUST be `row` or `column`.');
 		}
 
 		const _this = _(this);

@@ -1,0 +1,1 @@
+export { SplitviewContainerInterface as Container } from './src/Container/Interface';

@@ -16,13 +16,13 @@ const GET_MIN = view => view[$V.MIN];
  * @param {PREVIOUS | NEXT} side
  * @param {(viewContext: import('../Context').SplitviewViewContext) => number} getter
  */
-function SUM(view, side, getter) {
+const SUM = (view, side, getter) => {
 	let sum = 0;
 
 	view[$V.FOR_EACH](sibling => sum += getter(sibling), side);
 
 	return sum;
-}
+};
 
 /**
  * @param {import('../Context').SplitviewViewContext} view

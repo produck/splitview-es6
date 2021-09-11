@@ -21,6 +21,8 @@
 	},
 	"types": "index.d.ts",
 	"scripts": {
+		"clean": "rm -rf ./dist",
+		"build": "npm run clean && rollup --config script/rollup.config.js",
 		"test": "echo \"Error: run tests from root\" && exit 1"
 	},
 	"bugs": {

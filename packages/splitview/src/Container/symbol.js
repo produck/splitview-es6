@@ -1,10 +1,11 @@
 export const
 	AXIS = 'a',
-	VIEW_CONTAINER_ELEMENT = 'vC',
-	HANDLER_CONTAINER_ELEMENT = 'hC',
-	HEAD_VIEW = 'hV',
-	REAR_VIEW = 'rV',
+	VIEW_CONTAINER_ELEMENT = 'c',
+	HANDLER_CONTAINER_ELEMENT = 'h',
+	HEAD_VIEW = 'f',
+	REAR_VIEW = 'l',
 	DIRECTION = 'd',
+	ADJUSTMENT_DEBOUNCER = 't',
 	INTERFACE = '$';
 
 export const

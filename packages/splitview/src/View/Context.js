@@ -1,18 +1,19 @@
 import * as Dom from '../utils/dom';
-
-import { MAP as AXIS_MAP } from '../Axis';
-import { ResizingField } from './Field';
-
-import * as Style from './style';
+import * as Lang from '../utils/lang';
+import { ResizingField } from './Field/index';
 
 import * as $ from './symbol';
 import * as $C from '../Container/symbol';
 import * as $F from './Field/symbol';
 import * as $a from '../Axis/symbol';
 
+/** @typedef {import('../Container/Context').SplitviewContainerContext} SplitviewContainerContext */
+/** @typedef {import('./Interface').SplitviewViewInterface} SplitviewViewInterface */
+/** @typedef {import('./Field/Field').Field} Field */
+
 export class SplitviewBaseViewContext {
 	/**
-	 * @param {import('../Container/Context').SplitviewContainerContext} containerContext
+	 * @param {SplitviewBaseViewContext} containerContext
 	 */
 	constructor(containerContext) {
 		this[$.CONTAINER] = containerContext;
@@ -28,9 +29,13 @@ export class SplitviewBaseViewContext {
 		this[$.PREVIOUS] = null;
 	}
 
+	get [$.RESIZABLE]() {
+		return false;
+	}
+
 	/**
 	 * @param {(view: SplitviewViewContext) => void} callback
-	 * @param {import('./symbol').NEXT | import('./symbol').PREVIOUS} side
+	 * @param {$.NEXT | $.PREVIOUS} [side=$.NEXT]
 	 */
 	[$.FOR_EACH](callback, side = $.NEXT) {
 		let sibling = this[side];
@@ -42,10 +47,15 @@ export class SplitviewBaseViewContext {
 	}
 }
 
+const
+	MOUSEMOVE = 'mousemove',
+	MOUSEUP = 'mouseup',
+	MOUSEDOWN = 'mousedown';
+
 export class SplitviewViewContext extends SplitviewBaseViewContext {
 	/**
-	 * @param {import('./Interface').SplitviewViewInterface} viewInterface
-	 * @param {import('../Container/Context').SplitviewContainerContext} containerContext
+	 * @param {SplitviewViewInterface} viewInterface
+	 * @param {SplitviewContainerContext} containerContext
 	 */
 	constructor(viewInterface, containerContext) {
 		super(containerContext);
@@ -57,10 +67,8 @@ export class SplitviewViewContext extends SplitviewBaseViewContext {
 			viewElement = Dom.createDivElement(),
 			handlerElement = Dom.createDivElement();
 
-		Dom.setClassName(viewElement, 'sv-view');
-		Dom.setClassName(handlerElement, 'sv-handler');
-		Dom.setStyle(viewElement, Style.FIXED_VIEW_STYLE);
-		Dom.setStyle(handlerElement, Style.FIXED_HANDLER_STYLE);
+		Dom.addClass(viewElement, 'sv-view');
+		Dom.addClass(handlerElement, 'sv-handler');
 
 		this[$.VIEW_ELEMENT] = viewElement;
 		this[$.HANDLER_ELEMENT] = handlerElement;
@@ -68,11 +76,15 @@ export class SplitviewViewContext extends SplitviewBaseViewContext {
 		this[$.MAX] = Dom.WINDOW.screen.width * 4;
 		this[$.MIN] = 0;
 
-		Dom.addEventListener(handlerElement, () => this[$.START_RESIZING]());
+		Dom.addEventListener(handlerElement, MOUSEDOWN, () => this[$.RESIZE_BY_EVENT]());
 	}
 
 	get [$.AXIS]() {
-		return AXIS_MAP[this[$.CONTAINER][$C.DIRECTION]];
+		return this[$.CONTAINER][$C.AXIS];
+	}
+
+	get [$.RESIZABLE]() {
+		return this[$.MIN] !== this[$.MAX];
 	}
 
 	get [$.SIZE]() {
@@ -83,10 +95,14 @@ export class SplitviewViewContext extends SplitviewBaseViewContext {
 	 * @param {number} value
 	 */
 	set [$.SIZE](value) {
-		value = Math.trunc(value);
+		value = Lang.MATH_TRUNC(value);
 
 		if (this[$.SIZE] !== value) {
+			Dom.setStyle(this[$.VIEW_ELEMENT], {
+				[this[$.AXIS][$a.STYLE_SIZE]]: `${value}px`
+			});
 
+			this[$.FOR_EACH](sibling => sibling[$.FIX_OFFSET]());
 		}
 	}
 
@@ -95,12 +111,38 @@ export class SplitviewViewContext extends SplitviewBaseViewContext {
 	}
 
 	[$.FIX_OFFSET]() {
+		const propertyNameOfOffset = this[$.AXIS][$a.STYLE_OFFSET];
+		const previousView = this[$.PREVIOUS];
+		const offset = previousView[$.OFFSET] + previousView[$.SIZE];
 
+		Dom.setStyle(this[$.VIEW_ELEMENT], {
+			[propertyNameOfOffset]: `${offset}px`
+		});
+
+		Dom.setStyle(this[$.HANDLER_ELEMENT], {
+			[propertyNameOfOffset]: `${offset}px`
+		});
+	}
+
+	[$.RESET]() {
+		const { [$.AXIS]: axis } = this;
+
+		Dom.setStyle(this[$.VIEW_ELEMENT], {
+			[axis[$a.CROSS_STYLE_SIZE]]: '100%',
+			[axis[$a.CROSS_STYLE_OFFSET]]: 0
+		});
+
+		Dom.setStyle(this[$.HANDLER_ELEMENT], {
+			[axis[$a.CROSS_STYLE_SIZE]]: '100%',
+			[axis[$a.CROSS_STYLE_OFFSET]]: 0,
+			[axis[$a.STYLE_SIZE]]: '4px',
+			display: this[$.PREVIOUS][$.RESIZABLE] ? 'block' : 'none'
+		});
 	}
 
 	/**
 	 * @param {number} deltaSize
-	 * @param {import('./Field/Field').Field} field
+	 * @param {Field} field
 	 * @param {Map<SplitviewViewContext, number>} originalSizeMap
 	 */
 	[$.UPDATE_VIEW_STATE](deltaSize, field, originalSizeMap) {
@@ -113,7 +155,7 @@ export class SplitviewViewContext extends SplitviewBaseViewContext {
 			[$F.ORIGINAL_PUSHING_SIZE]: pushedOriginalSize
 		} = field;
 
-		const finalPulledViewSize = pulledView[$.SIZE] = Math.min(
+		const finalPulledViewSize = pulledView[$.SIZE] = Lang.MATH_MIN(
 			/**
 			 * The size of view equal to view.max. No pulling.
 			 */
@@ -136,7 +178,6 @@ export class SplitviewViewContext extends SplitviewBaseViewContext {
 		 * Because number of view changing size a time may be less than last time.
 		 * So use `forEach` not `find`. No need for more optimization.
 		 */
-
 		let freeDelta = finalPulledViewSize - pulledOriginalSize;
 
 		pulledView[$.FOR_EACH](view => {
@@ -154,7 +195,7 @@ export class SplitviewViewContext extends SplitviewBaseViewContext {
 	/**
 	 * @param {MouseEvent} event
 	 */
-	[$.START_RESIZING](event) {
+	[$.RESIZE_BY_EVENT](event) {
 		const { [$C.AXIS]: axis, [$C.DIRECTION]: direction } = this[$.CONTAINER];
 
 		/**
@@ -172,7 +213,7 @@ export class SplitviewViewContext extends SplitviewBaseViewContext {
 			[$.PREVIOUS]: ResizingField(this, $.PREVIOUS)
 		};
 
-		Dom.addClass(Dom.DOCUMENT.body, bodyClass);
+		Dom.addClass(Dom.BODY, bodyClass);
 
 		const updateViewStateWhenMoving = event => {
 			const delta = getPosition(event) - originalPosition;
@@ -193,17 +234,48 @@ export class SplitviewViewContext extends SplitviewBaseViewContext {
 			if (delta !== 0) {
 				const field = fieldMap[delta > 0 ? $.NEXT : $.PREVIOUS];
 
-				this[$.UPDATE_VIEW_STATE](Math.abs(delta), field, originalSizeMap);
+				this[$.UPDATE_VIEW_STATE](Lang.MATH_ABS(delta), field, originalSizeMap);
 			}
 		};
 
 		const endResizing = () => {
-			Dom.addEventListener(Dom.WINDOW, 'mousemove', updateViewStateWhenMoving);
-			Dom.addEventListener(Dom.WINDOW, 'mouseup', endResizing);
-			Dom.removeClass(Dom.DOCUMENT.body, bodyClass);
+			Dom.addEventListener(Dom.WINDOW, MOUSEMOVE, updateViewStateWhenMoving);
+			Dom.addEventListener(Dom.WINDOW, MOUSEUP, endResizing);
+			Dom.removeClass(Dom.BODY, bodyClass);
 		};
 
-		Dom.addEventListener(Dom.WINDOW, 'mousemove', updateViewStateWhenMoving);
-		Dom.addEventListener(Dom.WINDOW, 'mouseup', endResizing);
+		Dom.addEventListener(Dom.WINDOW, MOUSEMOVE, updateViewStateWhenMoving);
+		Dom.addEventListener(Dom.WINDOW, MOUSEUP, endResizing);
+	}
+
+	/**
+	 * @param {number} value
+	 */
+	[$.RESIZE_BY_CALLING](value) {
+		const finalValue = Lang.MATH_CLIP(this[$.MIN], this[$.MAX], value);
+		const isComplete = () => Lang.MATH_ABS(finalValue - this[$.SIZE]) === 0;
+		const THIS_HANDLER = -1, NEXT_HANDLER = 1;
+
+		/**
+		 * @param {THIS_HANDLER | NEXT_HANDLER} handler
+		 */
+		const resize = (handler) => {
+			const delta = value - this[$.SIZE];
+			const deltaSize = Lang.MATH_ABS(delta);
+			const field = ResizingField(
+				handler === THIS_HANDLER ? this[$.NEXT] : this,
+				delta * handler > 0 ? $.NEXT : $.PREVIOUS
+			);
+
+			this[$.UPDATE_VIEW_STATE](deltaSize, field, this[$.CONTAINER][$C.SIZE_MAP]());
+		};
+
+		if (!isComplete()) {
+			resize(NEXT_HANDLER);
+
+			if (!isComplete()) {
+				resize(THIS_HANDLER);
+			}
+		}
 	}
 }
