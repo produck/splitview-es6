@@ -2,7 +2,7 @@ import { Type } from '@produck/charon';
 import { Dom } from '@produck/charon-browser';
 
 import * as View from './View/index.js';
-import AXIS from './Axis/index.js';
+import { AXIS } from './Axis/index.js';
 import * as utils from './utils.js';
 
 import * as $ from './symbol.js';
@@ -89,5 +89,17 @@ export class ContainerContext {
 		);
 	}
 
+	[$.HAS_VIEW](view) {
+		for (const current of this[$.VIEW_HEAD][$V.SIBLINGS]()) {
+			if (view === current) {
+				return true;
+			}
+		}
 
+		return false;
+	}
+
+	[$.RESET]() {
+
+	}
 }

@@ -16,8 +16,10 @@ export const
 	UNMOUNT = 'U',
 
 	APPEND_VIEW = 'A',
-	REMOVE_VIEW = 'R',
+	REMOVE_VIEW = 'D',
 	INSERT_BEFORE = 'I',
+
+	RESET = 'R',
 
 	HAS_VIEW = 'H';
 

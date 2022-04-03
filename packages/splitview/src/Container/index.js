@@ -1,0 +1,1 @@
+export { ContainerProxy as Proxy } from './Proxy.js';

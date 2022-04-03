@@ -1,6 +1,6 @@
 import * as $ from './symbol';
 
-export default {
+export const AXIS = {
 	row: {
 		[$.NAME]: 'row',
 		[$.PROPERTY_POSITION]: 'clientX',

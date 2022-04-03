@@ -10,6 +10,7 @@ export const
 
 	MAX = 'a',
 	MIN = 'i',
+	SIZE = 's',
 
 	CONTAINER = 'c';
 
@@ -19,5 +20,6 @@ export const
 
 // Methods
 export const
+	SET_SIZE = 'S',
 	RESIZE_BY_EVENT = 'E',
-	SIBLINGS = 'S';
+	SIBLINGS = 'F';
