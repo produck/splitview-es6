@@ -1,0 +1,52 @@
+:root {
+	--sv-handler-color: #007fd4;
+	--sv-handler-size: 4px;
+}
+
+body.sv-resizing-row {
+	cursor: col-resize;
+}
+
+body.sv-resizing-column {
+	cursor: row-resize;
+}
+
+div.sv-container {
+	display: block !important;
+	position: relative !important;
+	overflow: hidden !important;
+	top: 0 !important;
+	left: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+	border: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+div.sv-container > div.sv-handler-container {
+	display: block !important;
+	position: absolute !important;
+	overflow: visible !important;
+	top: 0 !important;
+	left: 0 !important;
+	z-index: 1 !important;
+}
+
+div.sv-container > div.sv-view {
+	display: block !important;
+	position: absolute !important;
+	overflow: hidden !important;
+}
+
+div.sv-container > div.sv-handler-container > div.sv-handler {
+	display: block !important;
+	position: absolute !important;
+	transition: background-color 0.2s 0.1s;
+	user-select: none !important;
+	background-color: transparent;
+}
+
+div.sv-container > div.sv-handler-container > div.sv-handler:hover {
+	background-color: var(--sv-handler-color);
+}

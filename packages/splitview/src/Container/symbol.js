@@ -1,23 +1,23 @@
+// Properties
 export const
-	AXIS = 'a',
-	VIEW_CONTAINER_ELEMENT = 'c',
-	HANDLER_CONTAINER_ELEMENT = 'h',
-	HEAD_VIEW = 'f',
-	REAR_VIEW = 'l',
-	DIRECTION = 'd',
-	ADJUSTMENT_DEBOUNCER = 't',
-	INTERFACE = '$';
+	AXIS = 'x',
 
+	ELEMENT_VIEW_CONTAINER = 'c',
+	ELEMENT_HANDLER_CONTAINER = 'h',
+
+	VIEW_HEAD = 'a',
+	VIEW_REAR = 'z',
+
+	DIRECTION = 'd';
+
+// Methods
 export const
-	RESET = 'R',
-	ADJUST = 'A',
-
 	MOUNT = 'M',
 	UNMOUNT = 'U',
 
-	APPEND_VIEW = 'P',
-	REMOVE_VIEW = 'E',
+	APPEND_VIEW = 'A',
+	REMOVE_VIEW = 'R',
 	INSERT_BEFORE = 'I',
 
-	ASSERT_OWNED_VIEW = 'O',
-	SIZE_MAP = 'X';
+	HAS_VIEW = 'H';
+

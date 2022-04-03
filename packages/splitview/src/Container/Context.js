@@ -1,201 +1,93 @@
-import * as Lang from '../utils/lang';
-import * as Dom from '../utils/dom';
+import { Type } from '@produck/charon';
+import { Dom } from '@produck/charon-browser';
 
-import { SplitviewBaseViewContext } from '../View/Context';
-import { MAP as AXIS_MAP } from '../Axis/index';
+import * as View from './View/index.js';
+import AXIS from './Axis/index.js';
+import * as utils from './utils.js';
 
-import * as $C from './symbol';
-import * as $V from '../View/symbol';
-import * as $a from '../Axis/symbol';
+import * as $ from './symbol.js';
+import * as $V from './View/symbol.js';
+import * as $A from './Axis/symbol.js';
 
-/** @typedef {import('./Interface').SplitviewContainerInterface} SplitviewContainerInterface */
-/** @typedef {import('../View/Context').SplitviewViewContext} SplitviewViewContext */
+export class ContainerContext {
+	constructor(proxy) {
+		this.$ = proxy;
 
-/**
- * @param {SplitviewViewContext} a
- * @param {SplitviewViewContext} b
- */
-const sortViewBySpan = (a, b) => (a[$V.MAX] - a[$V.MIN]) - (b[$V.MAX] - b[$V.MIN]);
+		const viewSlot = utils.createDivWithClassName('sv-container');
+		const handlerSlot = utils.createDivWithClassName('sv-handler-container');
 
-/**
- * @param {SplitviewViewContext} view
- */
-const fixViewOffset = view =>  view[$V.FIX_OFFSET]();
+		Dom.appendChild(viewSlot, handlerSlot);
 
-/**
- * @param {SplitviewViewContext} view
- */
-const resetView = view => view[$V.RESET]();
+		this[$.ELEMENT_VIEW_CONTAINER] = viewSlot;
+		this[$.ELEMENT_HANDLER_CONTAINER] = handlerSlot;
 
-export class SplitviewContainerContext {
-	/**
-	 * @param {SplitviewContainerInterface} containerInterface
-	 */
-	constructor(containerInterface) {
-		this[$C.INTERFACE] = containerInterface;
-
-		const
-			viewContainerElement = Dom.createDivElement(),
-			handlerContainerElement = Dom.createDivElement();
-
-		Dom.addClass(viewContainerElement, 'sv-container');
-		Dom.addClass(handlerContainerElement, 'sv-handler-container');
-		Dom.appendChild(viewContainerElement, handlerContainerElement);
-
-		this[$C.VIEW_CONTAINER_ELEMENT] = viewContainerElement;
-		this[$C.HANDLER_CONTAINER_ELEMENT] = handlerContainerElement;
-
-		const
-			headView = new SplitviewBaseViewContext(this),
-			rearView = new SplitviewBaseViewContext(this);
+		const headView = this[$.VIEW_HEAD] = new View.BaseContext(this);
+		const rearView = this[$.VIEW_REAR] = new View.BaseContext(this);
 
 		headView[$V.NEXT] = rearView;
 		rearView[$V.PREVIOUS] = headView;
 
-		this[$C.HEAD_VIEW] = headView;
-		this[$C.REAR_VIEW] = rearView;
-
-		/**
-		 * @type {'row' | 'column'}
-		 */
-		this[$C.DIRECTION] = 'row';
-
-		this[$C.ADJUSTMENT_DEBOUNCER] = null;
+		this[$.AXIS] = AXIS.row;
 	}
 
-	get [$C.AXIS]() {
-		return AXIS_MAP[this[$C.DIRECTION]];
+	get [$.DIRECTION]() {
+		return this[$.AXIS][$A.NAME];
 	}
 
-	[$C.RESET]() {
-		Dom.setStyle(this[$C.HANDLER_CONTAINER_ELEMENT], {
-			[this[$C.AXIS][$a.CROSS_STYLE_SIZE]]: '100%',
-			[this[$C.AXIS][$a.STYLE_SIZE]]: '0'
-		});
-
-		if (Dom.hasParentElement(this[$C.VIEW_CONTAINER_ELEMENT])) {
-			this[$C.HEAD_VIEW][$V.FOR_EACH](resetView);
-			this[$C.ADJUST]();
+	set [$.DIRECTION](value) {
+		if (this[$.AXIS][$A.NAME] !== value) {
+			this[$.AXIS] = AXIS[value];
 		}
 	}
 
-	[$C.ADJUST]() {
-		clearTimeout(this[$C.ADJUSTMENT_DEBOUNCER]);
+	[$.MOUNT](element) {
+		Dom.appendChild(element, this[$.ELEMENT_VIEW_CONTAINER]);
+	}
 
-		/**
-		 * @type {SplitviewViewContext[]}
-		 */
-		const viewList = [];
-		const headView = this[$C.HEAD_VIEW];
+	[$.UNMOUNT]() {
+		const element = this[$.ELEMENT_VIEW_CONTAINER];
+		const { parentElement } = element;
 
-		headView[$V.FOR_EACH](view => viewList.push(view));
-		viewList.sort(sortViewBySpan);
-
-		const finalFreeSize = viewList.reduce((freeSize, view, index) => {
-			const totalSize = viewList
-				.slice(index)
-				.reduce((totalSize, view) => totalSize + view[$V.SIZE], 0);
-
-			const targetSize = Lang.MATH_ROUND(view[$V.SIZE] / totalSize * freeSize);
-			const size = Lang.MATH_CLIP(view[$V.MIN], view[$V.MAX], targetSize);
-
-			view[$V.SIZE] = size;
-
-			return freeSize - size;
-		});
-
-		headView[$V.FOR_EACH](fixViewOffset);
-
-		if (finalFreeSize > 0) {
-			this[$C.ADJUSTMENT_DEBOUNCER] =
-				setTimeout(() => console.warn(`Free ${finalFreeSize}px`), 1000);
+		if (Type.Not.Null(parentElement)) {
+			Dom.removeChild(parentElement, element);
 		}
 	}
 
-	/**
-	 * @param {HTMLElement} element
-	 */
-	[$C.MOUNT](element) {
-		Dom.appendChild(element, this[$C.VIEW_CONTAINER_ELEMENT]);
+	[$.APPEND_VIEW](view) {
+		view[$V.PREVIOUS] = this[$.VIEW_REAR][$V.PREVIOUS];
+		view[$V.NEXT] = this[$.VIEW_REAR];
+		this[$.VIEW_REAR][$V.PREVIOUS][$V.NEXT] = view;
+		this[$.VIEW_REAR][$V.PREVIOUS] = view;
+		Dom.appendChild(this[$.ELEMENT_VIEW_CONTAINER], view[$V.ELEMENT_VIEW]);
+		Dom.appendChild(this[$.ELEMENT_HANDLER_CONTAINER], view[$V.ELEMENT_HANDLER]);
 	}
 
-	[$C.UNMOUNT]() {
-		const viewContainerElement = this[$C.VIEW_CONTAINER_ELEMENT];
-
-		if (Dom.hasParentElement(viewContainerElement)) {
-			Dom.removeChild(Dom.getParentElement(viewContainerElement), viewContainerElement);
-		}
-	}
-
-	/**
-	 * @param {SplitviewViewContext} view
-	 */
-	[$C.APPEND_VIEW](view) {
-		view[$V.PREVIOUS] = this[$C.REAR_VIEW][$V.PREVIOUS];
-		view[$V.NEXT] = this[$C.REAR_VIEW];
-		this[$C.REAR_VIEW][$V.PREVIOUS] = this[$C.REAR_VIEW][$V.PREVIOUS][$V.NEXT] =  view;
-		Dom.appendChild(this[$C.VIEW_CONTAINER_ELEMENT], view[$V.VIEW_ELEMENT]);
-		Dom.appendChild(this[$C.HANDLER_CONTAINER_ELEMENT], view[$V.HANDLER_ELEMENT]);
-	}
-
-	/**
-	 * @param {SplitviewViewContext} view
-	 */
-	[$C.REMOVE_VIEW](view) {
+	[$.REMOVE_VIEW](view) {
 		view[$V.PREVIOUS][$V.NEXT] = view[$V.NEXT];
 		view[$V.NEXT][$V.PREVIOUS] = view[$V.PREVIOUS];
 		view[$V.PREVIOUS] = view[$V.NEXT] = null;
-		Dom.removeChild(this[$C.VIEW_CONTAINER_ELEMENT], view[$V.VIEW_ELEMENT]);
-		Dom.removeChild(this[$C.HANDLER_CONTAINER_ELEMENT], view[$V.HANDLER_ELEMENT]);
+		Dom.removeChild(this[$.ELEMENT_VIEW_CONTAINER], view[$V.ELEMENT_VIEW]);
+		Dom.removeChild(this[$.ELEMENT_HANDLER_CONTAINER], view[$V.ELEMENT_HANDLER]);
 	}
 
-	/**
-	 * @param {SplitviewViewContext} newView
-	 * @param {SplitviewViewContext} referenceView
-	 */
-	[$C.INSERT_BEFORE](newView, referenceView) {
+	[$.INSERT_BEFORE](newView, referenceView) {
 		newView[$V.NEXT] = referenceView;
 		newView[$V.PREVIOUS] = referenceView[$V.PREVIOUS];
-		referenceView[$V.PREVIOUS][$V.NEXT] = referenceView[$V.PREVIOUS] = newView;
+		referenceView[$V.PREVIOUS][$V.NEXT] = newView;
+		referenceView[$V.PREVIOUS] = newView;
 
 		Dom.insertBefore(
-			this[$C.VIEW_CONTAINER_ELEMENT],
-			newView[$V.VIEW_ELEMENT],
-			referenceView[$V.VIEW_ELEMENT]
+			this[$.ELEMENT_VIEW_CONTAINER],
+			newView[$V.ELEMENT_VIEW],
+			referenceView[$V.ELEMENT_VIEW]
 		);
 
 		Dom.insertBefore(
-			this[$C.HANDLER_CONTAINER_ELEMENT],
-			newView[$V.HANDLER_ELEMENT],
-			referenceView[$V.HANDLER_ELEMENT]
+			this[$.ELEMENT_HANDLER_CONTAINER],
+			newView[$V.ELEMENT_HANDLER],
+			referenceView[$V.ELEMENT_HANDLER]
 		);
 	}
 
-	/**
-	 * @param {SplitviewViewContext} view
-	 */
-	[$C.ASSERT_OWNED_VIEW](view, role = null) {
-		const list = ['The'];
 
-		if (role) {
-			list.push(role);
-		}
-
-		list.push('view is NOT in container.');
-
-		if (view[$V.CONTAINER] !== this) {
-			Lang.THROW(list.join(' '));
-		}
-	}
-
-	[$C.SIZE_MAP]() {
-		/**
-		 * @type {Map<SplitviewViewContext, number>}
-		 */
-		const map = new Map();
-
-		this[$C.HEAD_VIEW][$V.FOR_EACH](view => map.set(view, view.size));
-
-		return map;
-	}
 }

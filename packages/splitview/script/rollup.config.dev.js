@@ -9,7 +9,8 @@ const html = require('@rollup/plugin-html');
 const DIST_DIR = path.join(__dirname, '../.dev');
 
 export default defineConfig({
-	input: path.join(__dirname, '../test/index.js'),
+	// input: path.join(__dirname, '../test/index.js'),
+	input: path.resolve('index.js'),
 	output: {
 		dir: DIST_DIR,
 		sourcemap: 'inline',

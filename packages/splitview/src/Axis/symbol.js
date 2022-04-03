@@ -1,8 +1,0 @@
-export const
-	PROPERTY_POSITION = 'a',
-	PROPERTY_OFFSET = 'b',
-	PROPERTY_SIZE = 'c',
-	STYLE_SIZE = 'd',
-	STYLE_OFFSET = 'e',
-	CROSS_STYLE_SIZE = 'f',
-	CROSS_STYLE_OFFSET = 'g';
