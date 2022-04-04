@@ -2,6 +2,7 @@ import path from 'path';
 import { defineConfig } from 'rollup';
 import { terser } from 'rollup-plugin-terser';
 import { eslint } from 'rollup-plugin-eslint';
+const { nodeResolve } = require('@rollup/plugin-node-resolve');
 
 const meta = require('../package.json');
 
@@ -41,19 +42,21 @@ const moduleList = [
 export default moduleList.map(config => {
 	const pluginList = [];
 
+	pluginList.push(nodeResolve());
+
 	if (config.isUglify) {
 		pluginList.push(terser());
 	}
 
-	pluginList.push(eslint({
-		throwOnError: true,
-		throwOnWarning: true,
-		include: ['src/**'],
-		exclude: ['node_modules/**']
-	}));
+	// pluginList.push(eslint({
+	// 	throwOnError: true,
+	// 	throwOnWarning: true,
+	// 	include: ['src/**'],
+	// 	exclude: ['node_modules/**']
+	// }));
 
 	return defineConfig({
-		input: path.resolve('index.js'),
+		input: path.resolve('src/index.js'),
 		output: {
 			file: config.output,
 			format: config.format,

@@ -7,9 +7,7 @@ export const AXIS = {
 		[$.PROPERTY_SIZE]: 'offsetWidth',
 		[$.PROPERTY_OFFSET]: 'offsetLeft',
 		[$.STYLE_SIZE]: 'width',
-		[$.STYLE_OFFSET]: 'left',
-		[$.STYLE_CROSS_SIZE]: 'height',
-		[$.STYLE_CROSS_OFFSET]: 'top'
+		[$.STYLE_OFFSET]: 'left'
 	},
 	column: {
 		[$.NAME]: 'column',
@@ -17,9 +15,7 @@ export const AXIS = {
 		[$.PROPERTY_SIZE]: 'offsetHeight',
 		[$.PROPERTY_OFFSET]: 'offsetTop',
 		[$.STYLE_SIZE]: 'height',
-		[$.STYLE_OFFSET]: 'top',
-		[$.STYLE_CROSS_SIZE]: 'width',
-		[$.STYLE_CROSS_OFFSET]: 'left'
+		[$.STYLE_OFFSET]: 'top'
 	}
 };
 

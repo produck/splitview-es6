@@ -79,6 +79,7 @@ export class ContainerContext {
 		this[$.VIEW_REAR][$V.PREVIOUS] = view;
 		Dom.appendChild(this[$.ELEMENT_VIEW_CONTAINER], view[$V.ELEMENT_VIEW]);
 		Dom.appendChild(this[$.ELEMENT_HANDLER_CONTAINER], view[$V.ELEMENT_HANDLER]);
+		this[$.RESET]();
 	}
 
 	[$.REMOVE_VIEW](view) {
@@ -87,6 +88,7 @@ export class ContainerContext {
 		view[$V.PREVIOUS] = view[$V.NEXT] = null;
 		Dom.removeChild(this[$.ELEMENT_VIEW_CONTAINER], view[$V.ELEMENT_VIEW]);
 		Dom.removeChild(this[$.ELEMENT_HANDLER_CONTAINER], view[$V.ELEMENT_HANDLER]);
+		this[$.RESET]();
 	}
 
 	[$.INSERT_BEFORE](newView, referenceView) {
@@ -106,6 +108,8 @@ export class ContainerContext {
 			newView[$V.ELEMENT_HANDLER],
 			referenceView[$V.ELEMENT_HANDLER]
 		);
+
+		this[$.RESET]();
 	}
 
 	[$.SET_VIEW_FINAL_STYLE](view, size, offset) {
@@ -119,6 +123,10 @@ export class ContainerContext {
 	}
 
 	[$.RESET]() {
+		if (Type.isNull(this[$.ELEMENT_VIEW_CONTAINER].parentElement)) {
+			return;
+		}
+
 		const totalSize = this[$.SIZE];
 		const record = [];
 

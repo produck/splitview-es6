@@ -31,10 +31,6 @@ export class ContainerProxy {
 		Object.freeze(this);
 	}
 
-	get size() {
-		return _(this)[$.SIZE];
-	}
-
 	get element() {
 		return _(this)[$.ELEMENT_VIEW_CONTAINER];
 	}
@@ -60,7 +56,9 @@ export class ContainerProxy {
 	}
 
 	*views() {
-
+		for (const view of _(this)[$.VIEW_HEAD][$V.SIBLINGS]()) {
+			yield view.$;
+		}
 	}
 
 	appendView(view) {
