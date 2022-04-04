@@ -4,7 +4,7 @@ import { Container } from '../src/index.js';
 
 window.addEventListener('load', function () {
 	const workbenchElement = document.createElement('div');
-	const container = new Container();
+	const container = window.c = new Container();
 
 	console.log(window.a = container);
 

@@ -2,7 +2,7 @@ import { Type } from '@produck/charon';
 import { Dom } from '@produck/charon-browser';
 
 import * as View from './View/index.js';
-import { AXIS } from './Axis/index.js';
+import { AXIS, NULL_AXIS } from './Axis/index.js';
 import * as utils from './utils.js';
 
 import * as $ from './symbol.js';
@@ -27,7 +27,8 @@ export class ContainerContext {
 		headView[$V.NEXT] = rearView;
 		rearView[$V.PREVIOUS] = headView;
 
-		this[$.AXIS] = AXIS.row;
+		this[$.AXIS] = NULL_AXIS;
+		this[$.DIRECTION] = 'row';
 	}
 
 	get [$.DIRECTION]() {
@@ -35,7 +36,13 @@ export class ContainerContext {
 	}
 
 	set [$.DIRECTION](value) {
-		if (this[$.AXIS][$A.NAME] !== value) {
+		const originAxisName = this[$.AXIS][$A.NAME];
+
+		if (originAxisName !== value) {
+			const containerElement = this[$.ELEMENT_VIEW_CONTAINER];
+
+			Dom.removeClass(containerElement, `sv-${originAxisName}`);
+			Dom.addClass(containerElement, `sv-${value}`);
 			this[$.AXIS] = AXIS[value];
 		}
 	}

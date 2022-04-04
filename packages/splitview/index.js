@@ -1,1 +1,3 @@
-export { SplitviewContainerInterface as Container } from './src/Container/Interface';
+import './style.css';
+
+export { Container } from './src/index.js';

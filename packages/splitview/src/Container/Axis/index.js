@@ -22,3 +22,7 @@ export const AXIS = {
 		[$.STYLE_CROSS_OFFSET]: 'left'
 	}
 };
+
+export const NULL_AXIS = {
+	[$.NAME]: null
+};
