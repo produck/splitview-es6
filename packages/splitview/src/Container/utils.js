@@ -1,3 +1,4 @@
+import { Math } from '@produck/charon';
 import { Dom } from '@produck/charon-browser';
 
 export const createDivWithClassName = (name) => {
@@ -7,3 +8,5 @@ export const createDivWithClassName = (name) => {
 
 	return div;
 };
+
+export const clip = (min, max, value) => Math.max(Math.min(value, max), min);

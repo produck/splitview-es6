@@ -38,7 +38,7 @@ export class ViewProxy {
 	}
 
 	set min(value) {
-		if (Type.isNumber(value) || value <= 0) {
+		if (!Type.isNumber(value) || value <= 0) {
 			Lang.Throw.TypeError('Invalid min, a number(>0) expected.');
 		}
 
@@ -50,19 +50,19 @@ export class ViewProxy {
 	}
 
 	set max(value) {
-		if (Type.isNumber(value) || value <= _(this)[$.MIN]) {
-			Lang.Throw.TypeError('Invalid max, a number(> .min) expected.');
+		if (!Type.isNumber(value) || value < _(this)[$.MIN]) {
+			Lang.Throw.TypeError('Invalid max, a number(>= .min) expected.');
 		}
 
 		_(this)[$.MAX] = Math.trunc(value);
 	}
 
 	setSize(value, side = 'next') {
-		if (Type.isNumber(value) || value <= 0) {
+		if (!Type.isNumber(value) || value <= 0) {
 			Lang.Throw.TypeError('Invalid size, a number(>0) expected.');
 		}
 
-		if (SIDE_REG.test(side)) {
+		if (!SIDE_REG.test(side)) {
 			Lang.Throw.TypeError('Invalid side, `previous` or `next` expected.');
 		}
 

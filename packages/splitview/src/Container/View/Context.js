@@ -23,7 +23,11 @@ export class ViewContext extends BaseViewContext {
 		this[$.ELEMENT_VIEW] = utils.createDivWithClassName('sv-view');
 		this[$.ELEMENT_HANDLER] = handlerElement;
 
-		Dom.addEventListener(handlerElement, event => this[$.RESIZE_BY_EVENT](event));
+		Dom.addEventListener(
+			handlerElement,
+			'mousedown',
+			event => this[$.RESIZE_BY_EVENT](event)
+		);
 	}
 
 	get [$.RESIZABLE]() {
@@ -31,6 +35,10 @@ export class ViewContext extends BaseViewContext {
 	}
 
 	[$.RESIZE_BY_EVENT]() {
+		console.log(1111);
+	}
+
+	[$.SET_SIZE](value, side) {
 
 	}
 }

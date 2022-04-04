@@ -31,6 +31,10 @@ export class ContainerProxy {
 		Object.freeze(this);
 	}
 
+	get size() {
+		return _(this)[$.SIZE];
+	}
+
 	get element() {
 		return _(this)[$.ELEMENT_VIEW_CONTAINER];
 	}

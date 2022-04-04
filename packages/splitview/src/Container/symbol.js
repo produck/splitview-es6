@@ -1,6 +1,7 @@
 // Properties
 export const
 	AXIS = 'x',
+	SIZE = 's',
 
 	ELEMENT_VIEW_CONTAINER = 'c',
 	ELEMENT_HANDLER_CONTAINER = 'h',
@@ -20,6 +21,6 @@ export const
 	INSERT_BEFORE = 'I',
 
 	RESET = 'R',
-
+	SET_VIEW_FINAL_STYLE = 'S',
 	HAS_VIEW = 'H';
 

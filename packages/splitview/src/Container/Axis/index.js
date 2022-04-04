@@ -23,6 +23,4 @@ export const AXIS = {
 	}
 };
 
-export const NULL_AXIS = {
-	[$.NAME]: null
-};
+export const NULL_AXIS = {};

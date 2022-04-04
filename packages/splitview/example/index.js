@@ -6,8 +6,6 @@ window.addEventListener('load', function () {
 	const workbenchElement = document.createElement('div');
 	const container = window.c = new Container();
 
-	console.log(window.a = container);
-
 	document.body.appendChild(workbenchElement);
 	workbenchElement.id = 'app-workbench';
 	workbenchElement.style.setProperty('position', 'fixed');
@@ -25,10 +23,14 @@ window.addEventListener('load', function () {
 		{ name: 'feature-panel-0', min: 50 },
 		{ name: 'feature-panel-0', min: 50 },
 		// { name: 'feature-panel-1', max: 400, min: 0 },
-		// { name: 'feature-panel-2', max: 300, min: 50 },
-		// { name: 'desktop', max: 500, min: 200 }
+		{ name: 'feature-panel-2', max: 300, min: 50 },
+		{ name: 'desktop', max: 500, min: 200 }
 	].forEach((viewOptions, index) => {
-		const view = container.createView(viewOptions);
+		const { min, max } = viewOptions;
+		const view = container.createView();
+
+		view.min = min;
+		view.max = max || 400;
 
 		container.appendView(view);
 		index;

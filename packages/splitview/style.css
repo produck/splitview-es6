@@ -57,6 +57,16 @@ div.sv-container > div.sv-view {
 	overflow: hidden !important;
 }
 
+div.sv-container.sv-row > div.sv-view {
+	height: 100% !important;
+	top: 0 !important;
+}
+
+div.sv-container.sv-column > div.sv-view {
+	width: 100% !important;
+	left: 0 !important;
+}
+
 div.sv-container > div.sv-handler-container > div.sv-handler {
 	display: block !important;
 	position: absolute !important;
