@@ -90,13 +90,7 @@ export class ContainerContext {
 	}
 
 	[$.HAS_VIEW](view) {
-		for (const current of this[$.VIEW_HEAD][$V.SIBLINGS]()) {
-			if (view === current) {
-				return true;
-			}
-		}
-
-		return false;
+		return view[$V.CONTAINER] === this;
 	}
 
 	[$.RESET]() {

@@ -5,5 +5,5 @@ export const
 	PROPERTY_SIZE = 'c',
 	STYLE_SIZE = 'd',
 	STYLE_OFFSET = 'e',
-	CROSS_STYLE_SIZE = 'f',
-	CROSS_STYLE_OFFSET = 'g';
+	STYLE_CROSS_SIZE = 'f',
+	STYLE_CROSS_OFFSET = 'g';
