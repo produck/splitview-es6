@@ -4,4 +4,5 @@ export const
 	VIEW_NEXT = 'n';
 
 export const
-	SET_RESIZABLE = 'S';
+	SET_RESIZABLE = 'R',
+	SIBLINGS = 'S';

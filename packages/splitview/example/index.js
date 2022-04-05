@@ -24,10 +24,9 @@ window.addEventListener('load', function () {
 		{ name: 'feature-panel-0', min: 50 },
 		// { name: 'feature-panel-1', max: 400, min: 0 },
 		{ name: 'feature-panel-2', max: 300, min: 50 },
-		{ name: 'desktop', max: 500, min: 200 }
 	].forEach((viewOptions, index) => {
 		const { min, max } = viewOptions;
-		const view = container.createView();
+		const view = window.v = container.createView();
 
 		view.min = min;
 		view.max = max || 400;
@@ -35,6 +34,12 @@ window.addEventListener('load', function () {
 		container.appendView(view);
 		index;
 	});
+
+	const inserted = window.i = container.createView();
+
+	inserted.min = 200;
+	inserted.max = 500;
+	container.insertBefore(inserted, v);
 
 	container.mount(workbenchElement);
 });

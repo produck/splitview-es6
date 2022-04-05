@@ -16,6 +16,7 @@ export const
 	MOUNT = 'M',
 	UNMOUNT = 'U',
 
+	INSERT = 'i',
 	APPEND_VIEW = 'A',
 	REMOVE_VIEW = 'D',
 	INSERT_BEFORE = 'I',

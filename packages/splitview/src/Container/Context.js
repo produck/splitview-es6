@@ -90,50 +90,59 @@ export class ContainerContext {
 		}
 	}
 
-	[$.APPEND_VIEW](view) {
+	[$.INSERT](newView, referenceView) {
 		const handler = new Handler.Context();
+		const last = referenceView[$V.PREVIOUS];
 
-		view[$V.PREVIOUS] = this[$.VIEW_REAR][$V.PREVIOUS];
-		view[$V.NEXT] = this[$.VIEW_REAR];
-		this[$.VIEW_REAR][$V.PREVIOUS][$V.NEXT] = view;
-		this[$.VIEW_REAR][$V.PREVIOUS] = view;
+		newView[$V.PREVIOUS] = last;
+		newView[$V.NEXT] = referenceView;
+		last[$V.NEXT] = newView;
+		referenceView[$V.PREVIOUS] = newView;
 
-		view[$V.HANDLER_PREVIOUS] = this[$.VIEW_REAR][$V.HANDLER_PREVIOUS];
-		view[$V.HANDLER_NEXT] = handler;
-		handler[$H.VIEW_PREVIOUS] = view;
-		handler[$H.VIEW_NEXT] = this[$.VIEW_REAR];
-		this[$.VIEW_REAR][$V.HANDLER_PREVIOUS] = handler;
+		newView[$V.HANDLER_PREVIOUS] = referenceView[$V.HANDLER_PREVIOUS];
+		newView[$V.HANDLER_NEXT] = handler;
+		handler[$H.VIEW_PREVIOUS] = newView;
+		handler[$H.VIEW_NEXT] = referenceView;
+		referenceView[$V.HANDLER_PREVIOUS] = handler;
 
-		Dom.appendChild(this[$.ELEMENT_VIEW_CONTAINER], view[$V.ELEMENT]);
 		Dom.appendChild(this[$.ELEMENT_HANDLER_CONTAINER], handler[$H.ELEMENT]);
+	}
+
+	[$.APPEND_VIEW](view) {
+		this[$.INSERT](view, this[$.VIEW_REAR]);
+		Dom.appendChild(this[$.ELEMENT_VIEW_CONTAINER], view[$V.ELEMENT]);
 
 		this[$.RESET]();
 	}
 
 	[$.REMOVE_VIEW](view) {
-		view[$V.PREVIOUS][$V.NEXT] = view[$V.NEXT];
-		view[$V.NEXT][$V.PREVIOUS] = view[$V.PREVIOUS];
-		view[$V.PREVIOUS] = view[$V.NEXT] = null;
+		const {
+			[$V.HANDLER_PREVIOUS]: previousHandler,
+			[$V.HANDLER_NEXT]: nextHandler,
+			[$V.PREVIOUS]: previousView,
+			[$V.NEXT]: nextView
+		} = view;
+
+		previousView[$V.NEXT] = nextView;
+		nextView[$V.PREVIOUS] = previousView;
+		previousHandler[$H.VIEW_NEXT] = nextHandler;
+		nextView[$V.HANDLER_PREVIOUS] = previousHandler;
+
+		nextHandler[$H.VIEW_PREVIOUS] = nextHandler[$H.VIEW_NEXT] =
+			view[$V.PREVIOUS] = view[$V.NEXT] =
+			view[$V.HANDLER_PREVIOUS] = view[$V.HANDLER_NEXT] = null;
+
 		Dom.removeChild(this[$.ELEMENT_VIEW_CONTAINER], view[$V.ELEMENT]);
-		// Dom.removeChild(this[$.ELEMENT_HANDLER_CONTAINER], view[$V.ELEMENT_HANDLER]);
+		Dom.removeChild(this[$.ELEMENT_HANDLER_CONTAINER], nextHandler[$H.ELEMENT]);
 
 		this[$.RESET]();
 	}
 
 	[$.INSERT_BEFORE](newView, referenceView) {
-		newView[$V.NEXT] = referenceView;
-		newView[$V.PREVIOUS] = referenceView[$V.PREVIOUS];
-		referenceView[$V.PREVIOUS][$V.NEXT] = newView;
-		referenceView[$V.PREVIOUS] = newView;
+		this[$.INSERT](newView, referenceView);
 
 		Dom.insertBefore(
 			this[$.ELEMENT_VIEW_CONTAINER],
-			newView[$V.ELEMENT],
-			referenceView[$V.ELEMENT]
-		);
-
-		Dom.insertBefore(
-			this[$.ELEMENT_HANDLER_CONTAINER],
 			newView[$V.ELEMENT],
 			referenceView[$V.ELEMENT]
 		);
@@ -146,9 +155,9 @@ export class ContainerContext {
 		const handlerElement = view[$V.HANDLER_NEXT][$H.ELEMENT];
 		const axis = this[$.AXIS];
 
-		viewElement.style.setProperty(axis[$A.STYLE_SIZE], `${size}px`);
-		viewElement.style.setProperty(axis[$A.STYLE_OFFSET], `${offset}px`);
-		handlerElement.style.setProperty(axis[$A.STYLE_OFFSET], `${offset + size}px`);
+		utils.setStyle(viewElement, axis[$A.STYLE_SIZE], `${size}px`);
+		utils.setStyle(viewElement, axis[$A.STYLE_OFFSET], `${offset}px`);
+		utils.setStyle(handlerElement, axis[$A.STYLE_OFFSET], `${offset + size}px`);
 	}
 
 	[$.RESET]() {
