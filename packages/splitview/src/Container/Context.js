@@ -26,7 +26,6 @@ export const createHeadRearViewPair = (container) => {
 	handler[$H.VIEW_NEXT] = rear;
 	head[$V.HANDLER_NEXT] = handler;
 	rear[$V.HANDLER_PREVIOUS] = handler;
-	handler[$H.SET_RESIZABLE](false);
 
 	Dom.appendChild(container[$.ELEMENT_HANDLER_CONTAINER], handler[$H.ELEMENT]);
 
@@ -79,6 +78,8 @@ export class ContainerContext {
 	[$.MOUNT](element) {
 		Dom.appendChild(element, this[$.ELEMENT_VIEW_CONTAINER]);
 		this[$.RESET]();
+
+		console.log(Array.from(this[$.VIEW_HEAD][$V.HANDLER_NEXT][$H.SIBLINGS]()));
 	}
 
 	[$.UNMOUNT]() {
@@ -92,18 +93,20 @@ export class ContainerContext {
 
 	[$.INSERT](newView, referenceView) {
 		const handler = new Handler.Context();
-		const last = referenceView[$V.PREVIOUS];
+		const previousView = referenceView[$V.PREVIOUS];
+		const previousHandler = referenceView[$V.HANDLER_PREVIOUS];
 
-		newView[$V.PREVIOUS] = last;
+		newView[$V.PREVIOUS] = previousView;
+		previousView[$V.NEXT] = newView;
 		newView[$V.NEXT] = referenceView;
-		last[$V.NEXT] = newView;
 		referenceView[$V.PREVIOUS] = newView;
 
-		newView[$V.HANDLER_PREVIOUS] = referenceView[$V.HANDLER_PREVIOUS];
+		newView[$V.HANDLER_PREVIOUS] = previousHandler;
+		previousHandler[$H.VIEW_NEXT] = newView;
 		newView[$V.HANDLER_NEXT] = handler;
 		handler[$H.VIEW_PREVIOUS] = newView;
-		handler[$H.VIEW_NEXT] = referenceView;
 		referenceView[$V.HANDLER_PREVIOUS] = handler;
+		handler[$H.VIEW_NEXT] = referenceView;
 
 		Dom.appendChild(this[$.ELEMENT_HANDLER_CONTAINER], handler[$H.ELEMENT]);
 	}

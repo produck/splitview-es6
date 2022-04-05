@@ -23,7 +23,7 @@ window.addEventListener('load', function () {
 		{ name: 'feature-panel-0', min: 50 },
 		{ name: 'feature-panel-0', min: 50 },
 		// { name: 'feature-panel-1', max: 400, min: 0 },
-		{ name: 'feature-panel-2', max: 300, min: 50 },
+		// { name: 'feature-panel-2', max: 300, min: 50 },
 	].forEach((viewOptions, index) => {
 		const { min, max } = viewOptions;
 		const view = window.v = container.createView();

@@ -25,7 +25,7 @@ export class HandlerContext {
 	*[$.SIBLINGS](side = $.VIEW_NEXT) {
 		let current = this;
 
-		while (Type.Not.Null(current = SiblingGetter[side])) {
+		while (Type.Not.Null(current = SiblingGetter[side](current))) {
 			yield current;
 		}
 	}
