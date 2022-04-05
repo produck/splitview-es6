@@ -5,8 +5,8 @@ export const
 	PREVIOUS = 'p',
 	NEXT = 'n',
 
-	HANDLER_PREVIOUS = 'P',
-	HANDLER_NEXT = 'N',
+	HANDLER_PREVIOUS = 0,
+	HANDLER_NEXT = 1,
 
 	ELEMENT = 'e',
 

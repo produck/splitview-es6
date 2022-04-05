@@ -2,10 +2,10 @@ import { Lang, Math, Object, Type } from '@produck/charon';
 
 import { put, _ } from '../../reference.js';
 import { ViewContext } from './Context.js';
+import { SideAccessor } from '../Field/index.js';
+import * as utils from '../utils.js';
 
 import * as $ from './symbol.js';
-
-const SIDE_REG = /^next|previous$/;
 
 export class ViewProxy {
 	constructor(container) {
@@ -51,7 +51,7 @@ export class ViewProxy {
 
 	set max(value) {
 		if (!Type.isNumber(value) || value < _(this)[$.MIN]) {
-			Lang.Throw.TypeError('Invalid max, a number(>= .min) expected.');
+			Lang.Throw.TypeError('Invalid max, a number(>=.min) expected.');
 		}
 
 		_(this)[$.MAX] = Math.trunc(value);
@@ -59,17 +59,20 @@ export class ViewProxy {
 
 	setSize(value, side = 'next') {
 		if (!Type.isNumber(value) || value <= 0) {
-			Lang.Throw.TypeError('Invalid size, a number(>0) expected.');
+			Lang.Throw.TypeError('Invalid value, a number(>0) expected.');
 		}
 
-		if (!SIDE_REG.test(side)) {
+		if (!SideAccessor[side]) {
 			Lang.Throw.TypeError('Invalid side, `previous` or `next` expected.');
 		}
 
-		const finalValue = Math.trunc(value);
+		const _this = _(this);
+		const finalValue = Math.trunc(utils.clip(_this[$.MIN], _this[$.MAX], value));
 
-		_(this)[$.SET_SIZE](finalValue, side);
+		if (_this[$.SIZE] !== finalValue) {
+			_this[$.SET_SIZE](finalValue, side);
+		}
 
-		return _(this)[$.SIZE];
+		return _this[$.SIZE];
 	}
 }

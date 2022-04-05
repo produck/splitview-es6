@@ -78,8 +78,6 @@ export class ContainerContext {
 	[$.MOUNT](element) {
 		Dom.appendChild(element, this[$.ELEMENT_VIEW_CONTAINER]);
 		this[$.RESET]();
-
-		console.log(Array.from(this[$.VIEW_HEAD][$V.HANDLER_NEXT][$H.SIBLINGS]()));
 	}
 
 	[$.UNMOUNT]() {
@@ -155,12 +153,24 @@ export class ContainerContext {
 
 	[$.SET_VIEW_FINAL_STYLE](view, size, offset) {
 		const viewElement = view[$V.ELEMENT];
-		const handlerElement = view[$V.HANDLER_NEXT][$H.ELEMENT];
 		const axis = this[$.AXIS];
 
 		utils.setStyle(viewElement, axis[$A.STYLE_SIZE], `${size}px`);
 		utils.setStyle(viewElement, axis[$A.STYLE_OFFSET], `${offset}px`);
-		utils.setStyle(handlerElement, axis[$A.STYLE_OFFSET], `${offset + size}px`);
+	}
+
+	[$.UPDATE_HANDLERS]() {
+		const axis = this[$.AXIS];
+
+		this[$.VIEW_REAR][$V.HANDLER_PREVIOUS][$H.SET_RESIZABLE](false);
+		this[$.VIEW_HEAD][$V.HANDLER_NEXT][$H.SET_RESIZABLE](false);
+
+		let offset = 0;
+
+		for (const handler of this[$.VIEW_HEAD][$V.HANDLER_NEXT][$H.SIBLINGS]()) {
+			offset += handler[$H.VIEW_PREVIOUS][$V.SIZE];
+			utils.setStyle(handler[$H.ELEMENT], axis[$A.STYLE_OFFSET], `${offset}px`);
+		}
 	}
 
 	[$.RESET]() {
@@ -196,6 +206,8 @@ export class ContainerContext {
 				offset += finalSize;
 			}
 		}
+
+		this[$.UPDATE_HANDLERS]();
 
 		if (freeSize > 0) {
 			Console.warn(`Free ${freeSize}.`);

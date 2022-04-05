@@ -11,7 +11,7 @@ const DIRECTION_REG = /^(row|column)$/;
 
 const assertView = (view, container, role = 'view') => {
 	if (!Lang.instanceOf(view, ViewProxy)) {
-		Lang.Throw.TypeError(`Invalid ${role}, a ViewProxy expected.`);
+		Lang.Throw.TypeError(`Invalid ${role}, a View expected.`);
 	}
 
 	if (!_(container)[$.HAS_VIEW](_(view))) {

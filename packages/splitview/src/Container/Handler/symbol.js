@@ -5,4 +5,5 @@ export const
 
 export const
 	SET_RESIZABLE = 'R',
+	MOVE = 'M',
 	SIBLINGS = 'S';

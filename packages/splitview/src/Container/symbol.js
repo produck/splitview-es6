@@ -23,5 +23,6 @@ export const
 
 	RESET = 'R',
 	SET_VIEW_FINAL_STYLE = 'S',
+	UPDATE_HANDLERS = 'P',
 	HAS_VIEW = 'H';
 
