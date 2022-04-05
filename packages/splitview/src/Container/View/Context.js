@@ -18,24 +18,7 @@ export class ViewContext extends BaseViewContext {
 		this[$.MAX] = MAX;
 		this[$.MIN] = 0;
 
-		const handlerElement = utils.createDivWithClassName('sv-handler');
-
-		this[$.ELEMENT_VIEW] = utils.createDivWithClassName('sv-view');
-		this[$.ELEMENT_HANDLER] = handlerElement;
-
-		Dom.addEventListener(
-			handlerElement,
-			'mousedown',
-			event => this[$.RESIZE_BY_EVENT](event)
-		);
-	}
-
-	get [$.RESIZABLE]() {
-		return this[$.MAX] !== this[$.MIN];
-	}
-
-	[$.RESIZE_BY_EVENT]() {
-		console.log(1111);
+		this[$.ELEMENT] = utils.createDivWithClassName('sv-view');
 	}
 
 	[$.SET_SIZE](value, side) {

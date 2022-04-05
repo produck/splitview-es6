@@ -14,7 +14,7 @@ export class ViewProxy {
 	}
 
 	get element() {
-		return _(this)[$.ELEMENT_VIEW];
+		return _(this)[$.ELEMENT];
 	}
 
 	get container() {

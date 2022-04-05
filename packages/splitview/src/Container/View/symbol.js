@@ -2,21 +2,19 @@
 export const
 	AXIS = 'x',
 
-	NEXT = 'n',
 	PREVIOUS = 'p',
+	NEXT = 'n',
 
-	ELEMENT_VIEW = 'v',
-	ELEMENT_HANDLER = 'h',
+	HANDLER_PREVIOUS = 'P',
+	HANDLER_NEXT = 'N',
+
+	ELEMENT = 'e',
 
 	MAX = 'a',
 	MIN = 'i',
 	SIZE = 's',
 
 	CONTAINER = 'c';
-
-// Accessors
-export const
-	RESIZABLE = 'r';
 
 // Methods
 export const

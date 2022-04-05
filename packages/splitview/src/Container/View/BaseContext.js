@@ -10,14 +10,12 @@ export class BaseViewContext {
 		this[$.CONTAINER] = container;
 		this[$.PREVIOUS] = null;
 		this[$.NEXT] = null;
+		this[$.HANDLER_PREVIOUS] = null;
+		this[$.HANDLER_NEXT] = null;
 	}
 
 	get [$.AXIS]() {
 		return this[$.CONTAINER][$C.AXIS];
-	}
-
-	get [$.RESIZABLE]() {
-		return false;
 	}
 
 	*[$.SIBLINGS](side = $.NEXT) {

@@ -2,14 +2,36 @@ import { Console, Math, Type } from '@produck/charon';
 import { Dom } from '@produck/charon-browser';
 
 import * as View from './View/index.js';
+import * as Handler from './Handler/index.js';
 import { AXIS, NULL_AXIS } from './Axis/index.js';
 import * as utils from './utils.js';
 
 import * as $ from './symbol.js';
 import * as $V from './View/symbol.js';
+import * as $H from './Handler/symbol.js';
 import * as $A from './Axis/symbol.js';
 
 const TAIL = 0.000001;
+
+export const createHeadRearViewPair = (container) => {
+	const head = new View.BaseContext(container);
+	const rear = new View.BaseContext(container);
+
+	head[$V.NEXT] = rear;
+	rear[$V.PREVIOUS] = head;
+
+	const handler = new Handler.Context(container);
+
+	handler[$H.VIEW_PREVIOUS] = head;
+	handler[$H.VIEW_NEXT] = rear;
+	head[$V.HANDLER_NEXT] = handler;
+	rear[$V.HANDLER_PREVIOUS] = handler;
+	handler[$H.SET_RESIZABLE](false);
+
+	Dom.appendChild(container[$.ELEMENT_HANDLER_CONTAINER], handler[$H.ELEMENT]);
+
+	return [head, rear];
+};
 
 export class ContainerContext {
 	constructor(proxy) {
@@ -23,11 +45,7 @@ export class ContainerContext {
 		this[$.ELEMENT_VIEW_CONTAINER] = viewSlot;
 		this[$.ELEMENT_HANDLER_CONTAINER] = handlerSlot;
 
-		const headView = this[$.VIEW_HEAD] = new View.BaseContext(this);
-		const rearView = this[$.VIEW_REAR] = new View.BaseContext(this);
-
-		headView[$V.NEXT] = rearView;
-		rearView[$V.PREVIOUS] = headView;
+		[this[$.VIEW_HEAD], this[$.VIEW_REAR]] = createHeadRearViewPair(this);
 
 		this[$.AXIS] = NULL_AXIS;
 		this[$.DIRECTION] = 'row';
@@ -73,12 +91,22 @@ export class ContainerContext {
 	}
 
 	[$.APPEND_VIEW](view) {
+		const handler = new Handler.Context();
+
 		view[$V.PREVIOUS] = this[$.VIEW_REAR][$V.PREVIOUS];
 		view[$V.NEXT] = this[$.VIEW_REAR];
 		this[$.VIEW_REAR][$V.PREVIOUS][$V.NEXT] = view;
 		this[$.VIEW_REAR][$V.PREVIOUS] = view;
-		Dom.appendChild(this[$.ELEMENT_VIEW_CONTAINER], view[$V.ELEMENT_VIEW]);
-		Dom.appendChild(this[$.ELEMENT_HANDLER_CONTAINER], view[$V.ELEMENT_HANDLER]);
+
+		view[$V.HANDLER_PREVIOUS] = this[$.VIEW_REAR][$V.HANDLER_PREVIOUS];
+		view[$V.HANDLER_NEXT] = handler;
+		handler[$H.VIEW_PREVIOUS] = view;
+		handler[$H.VIEW_NEXT] = this[$.VIEW_REAR];
+		this[$.VIEW_REAR][$V.HANDLER_PREVIOUS] = handler;
+
+		Dom.appendChild(this[$.ELEMENT_VIEW_CONTAINER], view[$V.ELEMENT]);
+		Dom.appendChild(this[$.ELEMENT_HANDLER_CONTAINER], handler[$H.ELEMENT]);
+
 		this[$.RESET]();
 	}
 
@@ -86,8 +114,9 @@ export class ContainerContext {
 		view[$V.PREVIOUS][$V.NEXT] = view[$V.NEXT];
 		view[$V.NEXT][$V.PREVIOUS] = view[$V.PREVIOUS];
 		view[$V.PREVIOUS] = view[$V.NEXT] = null;
-		Dom.removeChild(this[$.ELEMENT_VIEW_CONTAINER], view[$V.ELEMENT_VIEW]);
-		Dom.removeChild(this[$.ELEMENT_HANDLER_CONTAINER], view[$V.ELEMENT_HANDLER]);
+		Dom.removeChild(this[$.ELEMENT_VIEW_CONTAINER], view[$V.ELEMENT]);
+		// Dom.removeChild(this[$.ELEMENT_HANDLER_CONTAINER], view[$V.ELEMENT_HANDLER]);
+
 		this[$.RESET]();
 	}
 
@@ -99,27 +128,27 @@ export class ContainerContext {
 
 		Dom.insertBefore(
 			this[$.ELEMENT_VIEW_CONTAINER],
-			newView[$V.ELEMENT_VIEW],
-			referenceView[$V.ELEMENT_VIEW]
+			newView[$V.ELEMENT],
+			referenceView[$V.ELEMENT]
 		);
 
 		Dom.insertBefore(
 			this[$.ELEMENT_HANDLER_CONTAINER],
-			newView[$V.ELEMENT_HANDLER],
-			referenceView[$V.ELEMENT_HANDLER]
+			newView[$V.ELEMENT],
+			referenceView[$V.ELEMENT]
 		);
 
 		this[$.RESET]();
 	}
 
 	[$.SET_VIEW_FINAL_STYLE](view, size, offset) {
-		const viewElement = view[$V.ELEMENT_VIEW];
-		const handlerElement = view[$V.ELEMENT_HANDLER];
+		const viewElement = view[$V.ELEMENT];
+		const handlerElement = view[$V.HANDLER_NEXT][$H.ELEMENT];
 		const axis = this[$.AXIS];
 
 		viewElement.style.setProperty(axis[$A.STYLE_SIZE], `${size}px`);
 		viewElement.style.setProperty(axis[$A.STYLE_OFFSET], `${offset}px`);
-		handlerElement.style.setProperty(axis[$A.STYLE_OFFSET], `${offset}px`);
+		handlerElement.style.setProperty(axis[$A.STYLE_OFFSET], `${offset + size}px`);
 	}
 
 	[$.RESET]() {
