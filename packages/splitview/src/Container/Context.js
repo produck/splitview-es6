@@ -4,6 +4,7 @@ import { Dom } from '@produck/charon-browser';
 import * as View from './View/index.js';
 import * as Handler from './Handler/index.js';
 import { AXIS, NULL_AXIS } from './Axis/index.js';
+import * as Reference from '../reference.js';
 import * as utils from './utils.js';
 
 import * as $ from './symbol.js';
@@ -32,6 +33,21 @@ export const createHeadRearViewPair = (container) => {
 	return [head, rear];
 };
 
+const observer = new ResizeObserver(entries => {
+	for (const containerElement of entries) {
+		Reference._(containerElement.target)[$.RESET]();
+	}
+});
+
+/**
+ * Container Structure:
+ *
+ *     *    +    +    *      - Handler
+ *    / \  / \  / \  / \
+ *  []---{}---{}---{}---[]   - View
+ * HEAD   <-- == -->   REAR
+ *   Previous || Next
+ */
 export class ContainerContext {
 	constructor(proxy) {
 		this.$ = proxy;
@@ -39,6 +55,7 @@ export class ContainerContext {
 		const viewSlot = utils.createDivWithClassName('sv-container');
 		const handlerSlot = utils.createDivWithClassName('sv-handler-container');
 
+		Reference.put(viewSlot, this);
 		Dom.appendChild(viewSlot, handlerSlot);
 
 		this[$.ELEMENT_VIEW_CONTAINER] = viewSlot;
@@ -76,6 +93,7 @@ export class ContainerContext {
 	}
 
 	[$.MOUNT](element) {
+		observer.observe(this[$.ELEMENT_VIEW_CONTAINER]);
 		Dom.appendChild(element, this[$.ELEMENT_VIEW_CONTAINER]);
 		this[$.RESET]();
 	}
@@ -85,6 +103,7 @@ export class ContainerContext {
 		const { parentElement } = element;
 
 		if (Type.Not.Null(parentElement)) {
+			observer.unobserve(this[$.ELEMENT_VIEW_CONTAINER]);
 			Dom.removeChild(parentElement, element);
 		}
 	}
