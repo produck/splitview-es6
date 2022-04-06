@@ -14,14 +14,14 @@ import * as $A from './Axis/symbol.js';
 
 const TAIL = 0.000001;
 
-export const createHeadRearViewPair = (container) => {
+const createHeadRearViewPair = (container) => {
 	const head = new View.BaseContext(container);
 	const rear = new View.BaseContext(container);
 
 	head[$V.NEXT] = rear;
 	rear[$V.PREVIOUS] = head;
 
-	const handler = new Handler.Context(container);
+	const handler = new Handler.Context();
 
 	handler[$H.VIEW_PREVIOUS] = head;
 	handler[$H.VIEW_NEXT] = rear;
@@ -178,17 +178,49 @@ export class ContainerContext {
 		utils.setStyle(viewElement, axis[$A.STYLE_OFFSET], `${offset}px`);
 	}
 
-	[$.UPDATE_HANDLERS]() {
-		const axis = this[$.AXIS];
+	[$.UPDATE_HANDLERS_RESIZABLE](forceAllNot = false) {
+		const headHandler = this[$.VIEW_HEAD][$V.HANDLER_NEXT];
+		const rearHandler = this[$.VIEW_REAR][$V.HANDLER_PREVIOUS];
 
-		this[$.VIEW_REAR][$V.HANDLER_PREVIOUS][$H.SET_RESIZABLE](false);
-		this[$.VIEW_HEAD][$V.HANDLER_NEXT][$H.SET_RESIZABLE](false);
+		if (forceAllNot) {
+			for (const handler of headHandler[$H.SIBLINGS]()) {
+				handler[$H.SET_RESIZABLE](false);
+			}
+		} else {
+			const handlerList = Array.from(headHandler[$H.SIBLINGS]());
+			const record = new Map(handlerList.map(view => [view, true]));
 
+			for (const [views, handlerSide] of [
+				[this[$.VIEW_HEAD][$V.SIBLINGS]($V.NEXT), $V.HANDLER_NEXT],
+				[this[$.VIEW_REAR][$V.SIBLINGS]($V.PREVIOUS), $V.HANDLER_PREVIOUS],
+			]) {
+				let min = 0, max = 0;
+
+				for (const view of views) {
+					const handler = view[handlerSide];
+
+					min += view[$V.MIN];
+					max += view[$V.MAX];
+					record.set(handler, record.get(handler) && min !== max);
+				}
+			}
+
+			for (const [handler, resizable] of record) {
+				handler[$H.SET_RESIZABLE](resizable);
+			}
+		}
+
+		headHandler[$H.SET_RESIZABLE](false);
+		rearHandler[$H.SET_RESIZABLE](false);
+	}
+
+	[$.UPDATE_HANDLERS_OFFSET]() {
+		const offsetProperty = this[$.AXIS][$A.STYLE_OFFSET];
 		let offset = 0;
 
 		for (const handler of this[$.VIEW_HEAD][$V.HANDLER_NEXT][$H.SIBLINGS]()) {
 			offset += handler[$H.VIEW_PREVIOUS][$V.SIZE];
-			utils.setStyle(handler[$H.ELEMENT], axis[$A.STYLE_OFFSET], `${offset}px`);
+			utils.setStyle(handler[$H.ELEMENT], offsetProperty, `${offset}px`);
 		}
 	}
 
@@ -226,7 +258,8 @@ export class ContainerContext {
 			}
 		}
 
-		this[$.UPDATE_HANDLERS]();
+		this[$.UPDATE_HANDLERS_OFFSET]();
+		this[$.UPDATE_HANDLERS_RESIZABLE](minSize > totalSize || freeSize > 0);
 
 		if (freeSize > 0) {
 			Console.warn(`Free ${freeSize}.`);
