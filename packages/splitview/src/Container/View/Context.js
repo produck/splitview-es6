@@ -3,9 +3,9 @@ import { Global } from '@produck/charon-browser';
 
 import * as utils from '../utils.js';
 import { BaseViewContext } from './BaseContext.js';
-import { SideAccessor } from '../Field/index.js';
 
 import * as $ from './symbol.js';
+import * as $C from '../symbol.js';
 import * as $A from '../Axis/symbol.js';
 import * as $H from '../Handler/symbol.js';
 import * as $F from '../Field/symbol.js';
@@ -28,12 +28,21 @@ export class ViewContext extends BaseViewContext {
 		return this[$.ELEMENT][this[$.AXIS][$A.PROPERTY_SIZE]];
 	}
 
-	[$.SET_SIZE](value, side) {
-		const accessor = SideAccessor[side];
-		const handler = accessor[$F.HANDLER](this);
-		const delta = value - this[$.SIZE];
-		const direction = accessor[$F.SIDE](delta);
+	[$.SET_SIZE](value, side, first = true) {
+		const handler = side[$F.HANDLER](this);
 
-		handler[$H.MOVE](Math.abs(delta), direction);
+		if (handler[$H.RESIZABLE]) {
+			const delta = value - this[$.SIZE];
+			const direction = side[$F.DIRECTION](delta);
+			const record = this[$.CONTAINER][$C.GET_RECORD]();
+
+			console.log(record);
+
+			handler[$H.MOVE](Math.abs(delta), direction, record);
+		}
+
+		if (first && this[$.SIZE] !== value) {
+			this[$.SET_SIZE](value, side[$F.OTHER], false);
+		}
 	}
 }

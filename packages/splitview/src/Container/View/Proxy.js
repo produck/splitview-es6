@@ -70,7 +70,7 @@ export class ViewProxy {
 		const finalValue = Math.trunc(utils.clip(_this[$.MIN], _this[$.MAX], value));
 
 		if (_this[$.SIZE] !== finalValue) {
-			_this[$.SET_SIZE](finalValue, side);
+			_this[$.SET_SIZE](finalValue, SideAccessor[side]);
 		}
 
 		return _this[$.SIZE];

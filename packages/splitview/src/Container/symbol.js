@@ -21,6 +21,8 @@ export const
 	REMOVE_VIEW = 'D',
 	INSERT_BEFORE = 'I',
 
+	GET_RECORD = 'C',
+
 	RESET = 'R',
 	SET_VIEW_FINAL_STYLE = 'S',
 	UPDATE_HANDLERS_OFFSET = 'O',

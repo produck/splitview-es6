@@ -1,4 +1,5 @@
 export const
+	RESIZABLE = 'r',
 	ELEMENT = 'e',
 	VIEW_PREVIOUS = 'p',
 	VIEW_NEXT = 'n';

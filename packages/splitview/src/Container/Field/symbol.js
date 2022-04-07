@@ -1,3 +1,4 @@
 export const
+	OTHER = 'o',
 	HANDLER = 'h',
-	SIDE = 's';
+	DIRECTION = 's';

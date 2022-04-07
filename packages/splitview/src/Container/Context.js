@@ -179,8 +179,10 @@ export class ContainerContext {
 	}
 
 	[$.UPDATE_HANDLERS_RESIZABLE](forceAllNot = false) {
-		const headHandler = this[$.VIEW_HEAD][$V.HANDLER_NEXT];
-		const rearHandler = this[$.VIEW_REAR][$V.HANDLER_PREVIOUS];
+		const headView = this[$.VIEW_HEAD];
+		const rearView = this[$.VIEW_REAR];
+		const headHandler = headView[$V.HANDLER_NEXT];
+		const rearHandler = rearView[$V.HANDLER_PREVIOUS];
 
 		if (forceAllNot) {
 			for (const handler of headHandler[$H.SIBLINGS]()) {
@@ -191,8 +193,8 @@ export class ContainerContext {
 			const record = new Map(handlerList.map(view => [view, true]));
 
 			for (const [views, handlerSide] of [
-				[this[$.VIEW_HEAD][$V.SIBLINGS]($V.NEXT), $V.HANDLER_NEXT],
-				[this[$.VIEW_REAR][$V.SIBLINGS]($V.PREVIOUS), $V.HANDLER_PREVIOUS],
+				[headView[$V.SIBLINGS]($V.NEXT), $V.HANDLER_NEXT],
+				[rearView[$V.SIBLINGS]($V.PREVIOUS), $V.HANDLER_PREVIOUS],
 			]) {
 				let min = 0, max = 0;
 
@@ -222,6 +224,16 @@ export class ContainerContext {
 			offset += handler[$H.VIEW_PREVIOUS][$V.SIZE];
 			utils.setStyle(handler[$H.ELEMENT], offsetProperty, `${offset}px`);
 		}
+	}
+
+	[$.GET_RECORD]() {
+		const record = new Map();
+
+		for (const view of this[$.VIEW_HEAD][$V.SIBLINGS]()) {
+			record.set(view, view[$V.SIZE]);
+		}
+
+		return record;
 	}
 
 	[$.RESET]() {

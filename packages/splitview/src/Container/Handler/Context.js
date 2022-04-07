@@ -18,6 +18,7 @@ export class HandlerContext {
 		this[$.ELEMENT] = element;
 		this[$.VIEW_PREVIOUS] = null;
 		this[$.VIEW_NEXT] = null;
+		this[$.RESIZABLE] = null;
 
 		Dom.addEventListener(element, 'mousedown', event => {
 			console.log(event);
@@ -25,7 +26,10 @@ export class HandlerContext {
 	}
 
 	[$.SET_RESIZABLE](flag) {
-		utils.setStyle(this[$.ELEMENT], 'visibility', flag ? 'visible' : 'hidden');
+		if (this[$.RESIZABLE] !== flag) {
+			this[$.RESIZABLE] = flag;
+			utils.setStyle(this[$.ELEMENT], 'visibility', flag ? 'visible' : 'hidden');
+		}
 	}
 
 	*[$.SIBLINGS](side = $.VIEW_NEXT) {
@@ -36,7 +40,7 @@ export class HandlerContext {
 		}
 	}
 
-	[$.MOVE](distance, side, ) {
+	[$.MOVE](distance, side, record) {
 		console.log(distance, side);
 	}
 }
