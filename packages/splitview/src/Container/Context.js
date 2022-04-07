@@ -21,7 +21,7 @@ const createHeadRearViewPair = (container) => {
 	head[$V.NEXT] = rear;
 	rear[$V.PREVIOUS] = head;
 
-	const handler = new Handler.Context();
+	const handler = new Handler.Context(container);
 
 	handler[$H.VIEW_PREVIOUS] = head;
 	handler[$H.VIEW_NEXT] = rear;
@@ -109,7 +109,7 @@ export class ContainerContext {
 	}
 
 	[$.INSERT](newView, referenceView) {
-		const handler = new Handler.Context();
+		const handler = new Handler.Context(this);
 		const previousView = referenceView[$V.PREVIOUS];
 		const previousHandler = referenceView[$V.HANDLER_PREVIOUS];
 
@@ -170,14 +170,6 @@ export class ContainerContext {
 		this[$.RESET]();
 	}
 
-	[$.SET_VIEW_FINAL_STYLE](view, size, offset) {
-		const viewElement = view[$V.ELEMENT];
-		const axis = this[$.AXIS];
-
-		utils.setStyle(viewElement, axis[$A.STYLE_SIZE], `${size}px`);
-		utils.setStyle(viewElement, axis[$A.STYLE_OFFSET], `${offset}px`);
-	}
-
 	[$.UPDATE_HANDLERS_RESIZABLE](forceAllNot = false) {
 		const headView = this[$.VIEW_HEAD];
 		const rearView = this[$.VIEW_REAR];
@@ -193,8 +185,8 @@ export class ContainerContext {
 			const record = new Map(handlerList.map(view => [view, true]));
 
 			for (const [views, handlerSide] of [
-				[headView[$V.SIBLINGS]($V.NEXT), $V.HANDLER_NEXT],
-				[rearView[$V.SIBLINGS]($V.PREVIOUS), $V.HANDLER_PREVIOUS],
+				[headView[$V.NEXT][$V.SIBLINGS]($V.NEXT), $V.HANDLER_NEXT],
+				[rearView[$V.PREVIOUS][$V.SIBLINGS]($V.PREVIOUS), $V.HANDLER_PREVIOUS],
 			]) {
 				let min = 0, max = 0;
 
@@ -226,14 +218,10 @@ export class ContainerContext {
 		}
 	}
 
-	[$.GET_RECORD]() {
-		const record = new Map();
-
-		for (const view of this[$.VIEW_HEAD][$V.SIBLINGS]()) {
-			record.set(view, view[$V.SIZE]);
+	[$.UPDATE_ALL_VIEW_LAST_SIZE]() {
+		for (const view of this[$.VIEW_HEAD][$V.NEXT][$V.SIBLINGS]()) {
+			view[$V.UPDATE_LAST_SIZE]();
 		}
-
-		return record;
 	}
 
 	[$.RESET]() {
@@ -246,7 +234,7 @@ export class ContainerContext {
 
 		let minSize = 0, totalWeight = TAIL;
 
-		for (const view of this[$.VIEW_HEAD][$V.SIBLINGS]()) {
+		for (const view of this[$.VIEW_HEAD][$V.NEXT][$V.SIBLINGS]()) {
 			const min = view[$V.MIN];
 			const weight = view[$V.MAX] - min;
 
@@ -265,13 +253,16 @@ export class ContainerContext {
 
 				freeSize -= finalDelta;
 				totalWeight -= weight;
-				this[$.SET_VIEW_FINAL_STYLE](view, finalSize, offset);
+				view[$V.SIZE] = finalSize;
+				view[$V.OFFSET] = offset;
 				offset += finalSize;
 			}
 		}
 
+		const overrun = minSize > totalSize || freeSize > 0;
+
 		this[$.UPDATE_HANDLERS_OFFSET]();
-		this[$.UPDATE_HANDLERS_RESIZABLE](minSize > totalSize || freeSize > 0);
+		this[$.UPDATE_HANDLERS_RESIZABLE](overrun);
 
 		if (freeSize > 0) {
 			Console.warn(`Free ${freeSize}.`);

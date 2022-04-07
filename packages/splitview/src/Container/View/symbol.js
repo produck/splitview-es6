@@ -12,12 +12,15 @@ export const
 
 	MAX = 'a',
 	MIN = 'i',
+	OFFSET = 'o',
 	SIZE = 's',
+	LAST_SIZE = 'l',
 
 	CONTAINER = 'c';
 
 // Methods
 export const
-	SET_SIZE = 'S',
+	SET_EXPECTED_SIZE = 'S',
 	RESIZE_BY_EVENT = 'E',
-	SIBLINGS = 'F';
+	SIBLINGS = 'F',
+	UPDATE_LAST_SIZE = 'U';

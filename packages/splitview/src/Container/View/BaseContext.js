@@ -19,7 +19,7 @@ export class BaseViewContext {
 	}
 
 	*[$.SIBLINGS](side = $.NEXT) {
-		let sibling = this[side];
+		let sibling = this;
 
 		while (Type.Not.Null(sibling) && Type.Not.Null(sibling[side])) {
 			yield sibling;

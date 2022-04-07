@@ -20,6 +20,7 @@ export class ViewContext extends BaseViewContext {
 
 		this[$.MAX] = MAX;
 		this[$.MIN] = 0;
+		this[$.LAST_SIZE] = 0;
 
 		this[$.ELEMENT] = utils.createDivWithClassName('sv-view');
 	}
@@ -28,21 +29,36 @@ export class ViewContext extends BaseViewContext {
 		return this[$.ELEMENT][this[$.AXIS][$A.PROPERTY_SIZE]];
 	}
 
-	[$.SET_SIZE](value, side, first = true) {
+	set [$.SIZE](value) {
+		utils.setStyle(this[$.ELEMENT], this[$.AXIS][$A.STYLE_SIZE], `${value}px`);
+	}
+
+	get [$.OFFSET]() {
+		return this[$.ELEMENT][this[$.AXIS][$A.PROPERTY_OFFSET]];
+	}
+
+	set [$.OFFSET](value) {
+		utils.setStyle(this[$.ELEMENT], this[$.AXIS][$A.STYLE_OFFSET], `${value}px`);
+	}
+
+	[$.UPDATE_LAST_SIZE]() {
+		this[$.LAST_SIZE] = this[$.SIZE];
+	}
+
+	[$.SET_EXPECTED_SIZE](value, side, first = true) {
 		const handler = side[$F.HANDLER](this);
 
 		if (handler[$H.RESIZABLE]) {
-			const delta = value - this[$.SIZE];
+			this[$.CONTAINER][$C.UPDATE_ALL_VIEW_LAST_SIZE]();
+
+			const delta = value - this[$.LAST_SIZE];
 			const direction = side[$F.DIRECTION](delta);
-			const record = this[$.CONTAINER][$C.GET_RECORD]();
 
-			console.log(record);
-
-			handler[$H.MOVE](Math.abs(delta), direction, record);
+			handler[$H.MOVE](Math.abs(delta), direction);
 		}
 
 		if (first && this[$.SIZE] !== value) {
-			this[$.SET_SIZE](value, side[$F.OTHER], false);
+			this[$.SET_EXPECTED_SIZE](value, side[$F.OTHER], false);
 		}
 	}
 }

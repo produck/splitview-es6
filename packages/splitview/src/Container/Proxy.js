@@ -56,7 +56,7 @@ export class ContainerProxy {
 	}
 
 	*views() {
-		for (const view of _(this)[$.VIEW_HEAD][$V.SIBLINGS]()) {
+		for (const view of _(this)[$.VIEW_HEAD][$V.NEXT][$V.SIBLINGS]()) {
 			yield view.$;
 		}
 	}
