@@ -230,7 +230,7 @@ export class ContainerContext {
 		let offset = 0;
 
 		for (const view of this[$.VIEW_FIRST][$V.SIBLINGS]()) {
-			view[$V.OFFSET] = offset;
+			view[$V.SET_OFFSET](offset);
 			offset += view[$V.SIZE];
 		}
 	}

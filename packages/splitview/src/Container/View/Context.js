@@ -33,11 +33,7 @@ export class ViewContext extends BaseViewContext {
 		utils.setStyle(this[$.ELEMENT], this[$.AXIS][$A.STYLE_SIZE], `${value}px`);
 	}
 
-	get [$.OFFSET]() {
-		return this[$.ELEMENT][this[$.AXIS][$A.PROPERTY_OFFSET]];
-	}
-
-	set [$.OFFSET](value) {
+	[$.SET_OFFSET](value) {
 		utils.setStyle(this[$.ELEMENT], this[$.AXIS][$A.STYLE_OFFSET], `${value}px`);
 	}
 

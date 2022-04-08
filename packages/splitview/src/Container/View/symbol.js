@@ -12,7 +12,7 @@ export const
 
 	MAX = 'a',
 	MIN = 'i',
-	OFFSET = 'o',
+	SET_OFFSET = 'o',
 	SIZE = 's',
 	LAST_SIZE = 'l',
 

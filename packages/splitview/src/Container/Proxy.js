@@ -3,11 +3,10 @@ import { Lang, Object } from '@produck/charon';
 import { put, _ } from '../reference.js';
 import { ContainerContext } from './Context.js';
 import { ViewProxy } from './View/Proxy.js';
+import { AXIS } from './Axis/index.js';
 
 import * as $ from './symbol.js';
 import * as $V from './View/symbol.js';
-
-const DIRECTION_REG = /^(row|column)$/;
 
 const assertView = (view, container, role = 'view') => {
 	if (!Lang.instanceOf(view, ViewProxy)) {
@@ -40,7 +39,7 @@ export class ContainerProxy {
 	}
 
 	set direction(value) {
-		if (!DIRECTION_REG.test(value)) {
+		if (!AXIS[value]) {
 			Lang.Throw.TypeError('Invalid value, `row` or `column` expected.');
 		}
 

@@ -1,5 +1,5 @@
 import { Math, Type } from '@produck/charon';
-import { Dom, Event } from '@produck/charon-browser';
+import { Dom, Event, Global } from '@produck/charon-browser';
 
 import * as utils from '../utils.js';
 import * as Side from './side.js';
@@ -7,6 +7,7 @@ import * as Side from './side.js';
 import * as $ from './symbol.js';
 import * as $C from '../symbol.js';
 import * as $V from '../View/symbol.js';
+import * as $A from '../Axis/symbol.js';
 
 const SiblingGetter = {
 	[$.VIEW_PREVIOUS]: handler => handler[$.VIEW_PREVIOUS][$V.HANDLER_PREVIOUS],
@@ -18,6 +19,7 @@ const Other = {
 	[$.VIEW_NEXT]: $.VIEW_PREVIOUS
 };
 
+const MovingDirection = delta => delta > 0 ? $.VIEW_NEXT : $.VIEW_PREVIOUS;
 export class HandlerContext {
 	constructor(container) {
 		const element = utils.createDivWithClassName('sv-handler');
@@ -28,10 +30,27 @@ export class HandlerContext {
 		this[$.VIEW_NEXT] = null;
 		this[$.RESIZABLE] = null;
 
+		const getPosition = event => event[container[$C.AXIS][$A.PROPERTY_POSITION]];
+
+		let startPosition = 0;
+
+		const moveHandler = event => {
+			const position = getPosition(event);
+			const delta = position - startPosition;
+			const direction = MovingDirection(delta);
+
+			this[$.MOVE](Math.abs(delta), direction);
+		};
+
 		Dom.addEventListener(element, 'mousedown', event => {
 			Event.stopPropagation(event);
 			container[$C.STASH_ALL_VIEWS_SIZE]();
-			console.log(event);
+			startPosition = getPosition(event);
+			Dom.addEventListener(Global.WINDOW, 'mousemove', moveHandler);
+		});
+
+		Dom.addEventListener(Global.WINDOW, 'mouseup', () => {
+			Dom.removeEventListener(Global.WINDOW, 'mousemove', moveHandler);
 		});
 	}
 
@@ -66,14 +85,8 @@ export class HandlerContext {
 			const lastSize = view[$V.LAST_SIZE];
 			const finalSize = Math.max(view[$V.MIN], lastSize - freeShrink);
 
-			console.log(view, lastSize, finalSize, freeShrink);
-
 			view[$V.SIZE] = finalSize;
 			freeShrink -= lastSize - finalSize;
-
-			if (freeShrink <= 0) {
-				break;
-			}
 		}
 
 		let freeGrow = delta;
@@ -84,10 +97,6 @@ export class HandlerContext {
 
 			view[$V.SIZE] = finalSize;
 			freeGrow -= finalSize - lastSize;
-
-			if (freeGrow <= 0) {
-				break;
-			}
 		}
 
 		this[$.CONTAINER][$C.UPDATE_VIEWS_OFFSET]();

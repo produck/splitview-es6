@@ -1,8 +1,8 @@
 export const
 	CONTAINER = 'c',
 	RESIZABLE = 'r',
-	VIEW_PREVIOUS = 'p',
-	VIEW_NEXT = 'n',
+	VIEW_PREVIOUS = 0,
+	VIEW_NEXT = 1,
 
 	ELEMENT = 'e';
 
