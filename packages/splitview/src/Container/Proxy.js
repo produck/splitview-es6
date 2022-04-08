@@ -48,15 +48,15 @@ export class ContainerProxy {
 	}
 
 	get first() {
-		return _(this)[$.VIEW_HEAD][$V.NEXT].$;
+		return _(this)[$.VIEW_FIRST].$;
 	}
 
 	get last() {
-		return _(this)[$.VIEW_REAR][$V.PREVIOUS].$;
+		return _(this)[$.VIEW_LAST].$;
 	}
 
 	*views() {
-		for (const view of _(this)[$.VIEW_HEAD][$V.NEXT][$V.SIBLINGS]()) {
+		for (const view of _(this)[$.VIEW_FIRST][$V.SIBLINGS]()) {
 			yield view.$;
 		}
 	}

@@ -9,6 +9,9 @@ export const
 	VIEW_HEAD = 'a',
 	VIEW_REAR = 'z',
 
+	VIEW_FIRST = 'f',
+	VIEW_LAST = 'l',
+
 	DIRECTION = 'd';
 
 // Methods
@@ -21,11 +24,11 @@ export const
 	REMOVE_VIEW = 'D',
 	INSERT_BEFORE = 'I',
 
-	UPDATE_ALL_VIEW_LAST_SIZE = 'C',
+	STASH_ALL_VIEWS_SIZE = 'C',
 
 	RESET = 'R',
-	SET_VIEW_FINAL_STYLE = 'S',
 	UPDATE_HANDLERS_OFFSET = 'O',
 	UPDATE_HANDLERS_RESIZABLE = 'B',
+	UPDATE_VIEWS_OFFSET = 'V',
 	HAS_VIEW = 'H';
 

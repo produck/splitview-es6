@@ -30,7 +30,7 @@ export class HandlerContext {
 
 		Dom.addEventListener(element, 'mousedown', event => {
 			Event.stopPropagation(event);
-			container[$C.UPDATE_ALL_VIEW_LAST_SIZE]();
+			container[$C.STASH_ALL_VIEWS_SIZE]();
 			console.log(event);
 		});
 	}
@@ -60,7 +60,6 @@ export class HandlerContext {
 		delta = Math.min(delta, totalThisSize - totalThisMin);
 		delta = Math.min(delta, totalThatMax - totalThatSize);
 
-		console.log(this, delta);
 		let freeShrink = delta;
 
 		for (const view of this[side][$V.SIBLINGS](Side.Direction[side], true)) {
@@ -90,5 +89,8 @@ export class HandlerContext {
 				break;
 			}
 		}
+
+		this[$.CONTAINER][$C.UPDATE_VIEWS_OFFSET]();
+		this[$.CONTAINER][$C.UPDATE_HANDLERS_OFFSET]();
 	}
 }

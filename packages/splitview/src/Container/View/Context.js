@@ -49,7 +49,7 @@ export class ViewContext extends BaseViewContext {
 		const handler = side[$F.HANDLER](this);
 
 		if (handler[$H.RESIZABLE]) {
-			this[$.CONTAINER][$C.UPDATE_ALL_VIEW_LAST_SIZE]();
+			this[$.CONTAINER][$C.STASH_ALL_VIEWS_SIZE]();
 
 			const delta = value - this[$.LAST_SIZE];
 			const direction = side[$F.DIRECTION](delta);

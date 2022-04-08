@@ -29,7 +29,7 @@ window.addEventListener('load', function () {
 		const view =  container.createView();
 
 		view.min = min;
-		view.max = max || 600;
+		view.max = max || 400;
 
 		container.appendView(view);
 		index;

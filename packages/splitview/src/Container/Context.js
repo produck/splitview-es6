@@ -88,6 +88,14 @@ export class ContainerContext {
 		}
 	}
 
+	get [$.VIEW_FIRST]() {
+		return this[$.VIEW_HEAD][$V.NEXT];
+	}
+
+	get [$.VIEW_LAST]() {
+		return this[$.VIEW_REAR][$V.PREVIOUS];
+	}
+
 	[$.HAS_VIEW](view) {
 		return view[$V.CONTAINER] === this;
 	}
@@ -218,8 +226,17 @@ export class ContainerContext {
 		}
 	}
 
-	[$.UPDATE_ALL_VIEW_LAST_SIZE]() {
-		for (const view of this[$.VIEW_HEAD][$V.NEXT][$V.SIBLINGS]()) {
+	[$.UPDATE_VIEWS_OFFSET]() {
+		let offset = 0;
+
+		for (const view of this[$.VIEW_FIRST][$V.SIBLINGS]()) {
+			view[$V.OFFSET] = offset;
+			offset += view[$V.SIZE];
+		}
+	}
+
+	[$.STASH_ALL_VIEWS_SIZE]() {
+		for (const view of this[$.VIEW_FIRST][$V.SIBLINGS]()) {
 			view[$V.UPDATE_LAST_SIZE]();
 		}
 	}
@@ -234,7 +251,7 @@ export class ContainerContext {
 
 		let minSize = 0, totalWeight = TAIL;
 
-		for (const view of this[$.VIEW_HEAD][$V.NEXT][$V.SIBLINGS]()) {
+		for (const view of this[$.VIEW_FIRST][$V.SIBLINGS]()) {
 			const min = view[$V.MIN];
 			const weight = view[$V.MAX] - min;
 
@@ -243,7 +260,7 @@ export class ContainerContext {
 			totalWeight += weight;
 		}
 
-		let freeSize = totalSize - minSize, offset = 0;
+		let freeSize = totalSize - minSize;
 
 		if (freeSize > 0) {
 			for (const [view, weight, size] of record) {
@@ -254,13 +271,12 @@ export class ContainerContext {
 				freeSize -= finalDelta;
 				totalWeight -= weight;
 				view[$V.SIZE] = finalSize;
-				view[$V.OFFSET] = offset;
-				offset += finalSize;
 			}
 		}
 
 		const overrun = minSize > totalSize || freeSize > 0;
 
+		this[$.UPDATE_VIEWS_OFFSET]();
 		this[$.UPDATE_HANDLERS_OFFSET]();
 		this[$.UPDATE_HANDLERS_RESIZABLE](overrun);
 
