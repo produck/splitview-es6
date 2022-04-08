@@ -20,6 +20,7 @@ const Other = {
 };
 
 const MovingDirection = delta => delta > 0 ? $.VIEW_NEXT : $.VIEW_PREVIOUS;
+const ACTIVE_CLASS = 'sv-active';
 export class HandlerContext {
 	constructor(container) {
 		const element = utils.createDivWithClassName('sv-handler');
@@ -47,10 +48,14 @@ export class HandlerContext {
 			container[$C.STASH_ALL_VIEWS_SIZE]();
 			startPosition = getPosition(event);
 			Dom.addEventListener(Global.WINDOW, 'mousemove', moveHandler);
+			Dom.addClass(element, ACTIVE_CLASS);
+			utils.setStyle(Dom.body, 'cursor', container[$C.AXIS][$A.CURSOR]);
 		});
 
 		Dom.addEventListener(Global.WINDOW, 'mouseup', () => {
 			Dom.removeEventListener(Global.WINDOW, 'mousemove', moveHandler);
+			Dom.removeClass(element, ACTIVE_CLASS);
+			utils.setStyle(Dom.body, 'cursor', 'default');
 		});
 	}
 
@@ -81,7 +86,7 @@ export class HandlerContext {
 
 		let freeShrink = delta;
 
-		for (const view of this[side][$V.SIBLINGS](Side.Direction[side], true)) {
+		for (const view of this[side][$V.SIBLINGS](Side.Direction[side])) {
 			const lastSize = view[$V.LAST_SIZE];
 			const finalSize = Math.max(view[$V.MIN], lastSize - freeShrink);
 
@@ -91,7 +96,7 @@ export class HandlerContext {
 
 		let freeGrow = delta;
 
-		for (const view of this[otherSide][$V.SIBLINGS](Side.Direction[otherSide], true)) {
+		for (const view of this[otherSide][$V.SIBLINGS](Side.Direction[otherSide])) {
 			const lastSize = view[$V.LAST_SIZE];
 			const finalSize = Math.min(view[$V.MAX], lastSize + freeGrow);
 

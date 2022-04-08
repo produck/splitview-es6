@@ -5,14 +5,6 @@
 	--sv-delay: 0.05s;
 }
 
-body.sv-resizing-row {
-	cursor: col-resize;
-}
-
-body.sv-resizing-column {
-	cursor: row-resize;
-}
-
 /**
  * Container
  */
@@ -84,6 +76,7 @@ div.sv-container.sv-row > div.sv-handler-container > div.sv-handler {
 	top: 0 !important;
 	width: calc(var(--sv-size) * 1px) !important;
 	margin-left: calc(var(--sv-size) / 2 * -1px);
+	cursor: col-resize;
 }
 
 div.sv-container.sv-column > div.sv-handler-container > div.sv-handler {
@@ -91,8 +84,10 @@ div.sv-container.sv-column > div.sv-handler-container > div.sv-handler {
 	left: 0 !important;
 	height: calc(var(--sv-size) * 1px) !important;
 	margin-top: calc(var(--sv-size) / 2 * -1px);
+	cursor: row-resize;
 }
 
-div.sv-container > div.sv-handler-container > div.sv-handler:hover {
+div.sv-container > div.sv-handler-container > div.sv-handler:hover,
+div.sv-container > div.sv-handler-container > div.sv-handler.sv-active {
 	background-color: var(--sv-color);
 }
