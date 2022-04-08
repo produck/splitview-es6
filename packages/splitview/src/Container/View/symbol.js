@@ -2,8 +2,8 @@
 export const
 	AXIS = 'x',
 
-	PREVIOUS = 'p',
-	NEXT = 'n',
+	PREVIOUS = 2,
+	NEXT = 3,
 
 	HANDLER_PREVIOUS = 0,
 	HANDLER_NEXT = 1,

@@ -85,11 +85,9 @@ export class ContainerProxy {
 	mount(element) {
 		assertElement(element);
 		_(this)[$.MOUNT](element);
-
 	}
 
-	destroy(element) {
-		assertElement(element);
+	destroy() {
 		_(this)[$.UNMOUNT]();
 	}
 

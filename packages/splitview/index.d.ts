@@ -1,6 +1,3 @@
-interface SplitviewContainerHTMLDivElement extends HTMLDivElement {}
-interface SplitviewViewHTMLDivElement extends HTMLDivElement {}
-
 interface SplitviewView {
 	/**
 	 * A getter to access splitview container of this view.
@@ -10,7 +7,7 @@ interface SplitviewView {
 	/**
 	 * The dom of this split view, an element class is `sv-view`.
 	 */
-	readonly element: SplitviewViewHTMLDivElement;
+	readonly element: HTMLDivElement;
 
 	/**
 	 * The next view of this view.
@@ -30,10 +27,8 @@ interface SplitviewView {
 	readonly size: number;
 
 	/**
-	 * @param value The size for trying to set.
-	 * @returns is the difference between the actual value and the expected value.
-	 *   - === 0 means an actual size set.
-	 *   - !== 0 means some free space.
+	 * @param value - The size for trying to set.
+	 * @returns The final size
 	 */
 	setSize(value: number): number;
 
@@ -65,7 +60,7 @@ interface SplitviewContainer {
 	/**
 	 * The dom of this split view, an element class is `sv-container`.
 	 */
-	readonly element: SplitviewContainerHTMLDivElement;
+	readonly element: HTMLDivElement;
 
 	/**
 	 * The first view of this container.
@@ -88,12 +83,12 @@ interface SplitviewContainer {
 	 * @param options view options. `min === max` means unresizable.
 	 * @returns the created view
 	 */
-	createView(options?: SplitviewViewViewOptions): SplitviewView;
+	createView(): SplitviewView;
 
 	/**
 	 * Putting an owned view to the end of this container.
 	 *
-	 * @param view a split view
+	 * @param view - a split view
 	 * @returns the new view
 	 */
 	appendView(view: SplitviewView): SplitviewView;
@@ -101,7 +96,7 @@ interface SplitviewContainer {
 	/**
 	 * Removing an owned view in the container.
 	 *
-	 * @param view a split view
+	 * @param view - a split view
 	 * @returns the new view
 	 */
 	removeView(view: SplitviewView): SplitviewView;
@@ -109,8 +104,8 @@ interface SplitviewContainer {
 	/**
 	 * It inserts a view before a reference view as a child of this container.
 	 *
-	 * @param newView the view to be inserted
-	 * @param referenceView The view before which newView is inserted.If this is
+	 * @param newView - the view to be inserted
+	 * @param referenceView - The view before which newView is inserted.If this is
 	 * null, then newView is inserted at the end of this container.
 	 * @returns the new view
 	 */
@@ -129,11 +124,6 @@ interface SplitviewContainer {
 	 * Removing from parent element and stoping container size observer.
 	 */
 	destroy(): void;
-
-	/**
-	 * The final way for manually resetting the layout. Not recommanded.
-	 */
-	relayout(): void;
 }
 
 export function Container(): SplitviewContainer;
