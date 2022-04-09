@@ -2,7 +2,8 @@
 	"name": "@produck/splitview-es6-workspace",
 	"private": true,
 	"scripts": {
-		"deps:bootstrap": "lerna bootstrap"
+		"deps:bootstrap": "lerna bootstrap",
+		"deps:clean": "lerna clean -y"
 	},
 	"devDependencies": {
 		"lerna": "^4.0.0"
