@@ -9,9 +9,9 @@ import * as $C from '../symbol.js';
 import * as $V from '../View/symbol.js';
 import * as $A from '../Axis/symbol.js';
 
-const SiblingGetter = {
-	[$.VIEW_PREVIOUS]: handler => handler[$.VIEW_PREVIOUS][$V.HANDLER_PREVIOUS],
-	[$.VIEW_NEXT]: handler => handler[$.VIEW_NEXT][$V.HANDLER_NEXT]
+const VIEW_FORWARD_HANDLER = {
+	[$.VIEW_PREVIOUS]: [$V.HANDLER_PREVIOUS],
+	[$.VIEW_NEXT]: [$V.HANDLER_NEXT]
 };
 
 const Other = {
@@ -27,9 +27,10 @@ export class HandlerContext {
 
 		this[$.CONTAINER] = container;
 		this[$.ELEMENT] = element;
-		this[$.VIEW_PREVIOUS] = null;
+
+		this[$.RESIZABLE] =
+		this[$.VIEW_PREVIOUS] =
 		this[$.VIEW_NEXT] = null;
-		this[$.RESIZABLE] = null;
 
 		const getPosition = event => event[container[$C.AXIS][$A.PROPERTY_POSITION]];
 
@@ -55,21 +56,22 @@ export class HandlerContext {
 		Dom.addEventListener(Global.WINDOW, 'mouseup', () => {
 			Dom.removeEventListener(Global.WINDOW, 'mousemove', moveHandler);
 			Dom.removeClass(element, ACTIVE_CLASS);
-			utils.setStyle(Dom.body, 'cursor', 'default');
+			utils.setStyle(Dom.body, 'cursor', '');
 		});
 	}
 
 	[$.SET_RESIZABLE](flag) {
 		if (this[$.RESIZABLE] !== flag) {
 			this[$.RESIZABLE] = flag;
-			utils.setStyle(this[$.ELEMENT], 'visibility', flag ? 'visible' : 'hidden');
+			utils.setStyle(this[$.ELEMENT], 'display', flag ? 'block' : 'none');
 		}
 	}
 
-	*[$.SIBLINGS](side = $.VIEW_NEXT) {
+	*[$.SIBLINGS](viewSide = $.VIEW_NEXT) {
+		const FORWARD_HANDLER = VIEW_FORWARD_HANDLER[viewSide];
 		let current = this;
 
-		while (Type.Not.Null(current = SiblingGetter[side](current))) {
+		while (Type.Not.Null(current = current[viewSide][FORWARD_HANDLER])) {
 			yield current;
 		}
 	}
@@ -104,7 +106,6 @@ export class HandlerContext {
 			freeGrow -= finalSize - lastSize;
 		}
 
-		this[$.CONTAINER][$C.UPDATE_VIEWS_OFFSET]();
-		this[$.CONTAINER][$C.UPDATE_HANDLERS_OFFSET]();
+		this[$.CONTAINER][$C.UPDATE_OFFSET]();
 	}
 }

@@ -60,7 +60,7 @@ div.sv-container.sv-column > div.sv-view {
 }
 
 div.sv-container > div.sv-handler-container > div.sv-handler {
-	display: block !important;
+	display: block;
 	position: absolute !important;
 	transition: background-color var(--sv-duration) var(--sv-delay);
 	user-select: none !important;

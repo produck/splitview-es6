@@ -11,6 +11,7 @@ export const createDivWithClassName = (name) => {
 
 export const clip = (min, max, value) => Math.max(Math.min(value, max), min);
 
-export const setStyle = (element, property, value) => {
+export const setStyle = (element, property, value) =>
 	element.style.setProperty(property, value);
-};
+
+export const ArrayFrom = Array.from;

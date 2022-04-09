@@ -1,6 +1,6 @@
 import * as $ from './symbol.js';
-import * as $V from '../View/symbol.js';
-import * as $H from '../Handler/symbol.js';
+import * as $V from '../symbol.js';
+import * as $H from '../../Handler/symbol.js';
 
 const previous = {
 	[$.HANDLER]: view => view[$V.HANDLER_PREVIOUS],

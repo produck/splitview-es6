@@ -5,12 +5,12 @@ import * as $C from '../symbol.js';
 
 export class BaseViewContext {
 	constructor(container) {
-		this.$ = null;
-
 		this[$.CONTAINER] = container;
-		this[$.PREVIOUS] = null;
-		this[$.NEXT] = null;
-		this[$.HANDLER_PREVIOUS] = null;
+
+		this.$ =
+		this[$.PREVIOUS] =
+		this[$.NEXT] =
+		this[$.HANDLER_PREVIOUS] =
 		this[$.HANDLER_NEXT] = null;
 	}
 

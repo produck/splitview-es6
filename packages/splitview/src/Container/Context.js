@@ -12,7 +12,7 @@ import * as $V from './View/symbol.js';
 import * as $H from './Handler/symbol.js';
 import * as $A from './Axis/symbol.js';
 
-const TAIL = 0.000001;
+const TAIL = 1;
 
 const createHeadRearViewPair = (container) => {
 	const head = new View.BaseContext(container);
@@ -189,7 +189,7 @@ export class ContainerContext {
 				handler[$H.SET_RESIZABLE](false);
 			}
 		} else {
-			const handlerList = Array.from(headHandler[$H.SIBLINGS]());
+			const handlerList = utils.ArrayFrom(headHandler[$H.SIBLINGS]());
 			const record = new Map(handlerList.map(view => [view, true]));
 
 			for (const [views, handlerSide] of [
@@ -216,22 +216,16 @@ export class ContainerContext {
 		rearHandler[$H.SET_RESIZABLE](false);
 	}
 
-	[$.UPDATE_HANDLERS_OFFSET]() {
+	[$.UPDATE_OFFSET]() {
 		const offsetProperty = this[$.AXIS][$A.STYLE_OFFSET];
 		let offset = 0;
 
-		for (const handler of this[$.VIEW_HEAD][$V.HANDLER_NEXT][$H.SIBLINGS]()) {
-			offset += handler[$H.VIEW_PREVIOUS][$V.SIZE];
-			utils.setStyle(handler[$H.ELEMENT], offsetProperty, `${offset}px`);
-		}
-	}
-
-	[$.UPDATE_VIEWS_OFFSET]() {
-		let offset = 0;
-
 		for (const view of this[$.VIEW_FIRST][$V.SIBLINGS]()) {
+			const handlerElement = view[$V.HANDLER_NEXT][$H.ELEMENT];
+
 			view[$V.SET_OFFSET](offset);
 			offset += view[$V.SIZE];
+			utils.setStyle(handlerElement, offsetProperty, `${offset}px`);
 		}
 	}
 
@@ -276,8 +270,7 @@ export class ContainerContext {
 
 		const overrun = minSize > totalSize || freeSize > 0;
 
-		this[$.UPDATE_VIEWS_OFFSET]();
-		this[$.UPDATE_HANDLERS_OFFSET]();
+		this[$.UPDATE_OFFSET]();
 		this[$.UPDATE_HANDLERS_RESIZABLE](overrun);
 
 		if (freeSize > 0) {

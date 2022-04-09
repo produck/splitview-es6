@@ -8,9 +8,9 @@ import * as $ from './symbol.js';
 import * as $C from '../symbol.js';
 import * as $A from '../Axis/symbol.js';
 import * as $H from '../Handler/symbol.js';
-import * as $F from '../Field/symbol.js';
+import * as $F from './Field/symbol.js';
 
-const MAX = Global.WINDOW.screen.width * 4;
+const DEFAULT_MAX = Global.WINDOW.screen.width * 4;
 
 export class ViewContext extends BaseViewContext {
 	constructor(proxy, container) {
@@ -18,7 +18,7 @@ export class ViewContext extends BaseViewContext {
 
 		this.$ = proxy;
 
-		this[$.MAX] = MAX;
+		this[$.MAX] = DEFAULT_MAX;
 		this[$.MIN] = 0;
 		this[$.LAST_SIZE] = 0;
 
