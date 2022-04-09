@@ -1,61 +1,11 @@
-interface SplitviewView {
-	/**
-	 * A getter to access splitview container of this view.
-	 */
-	readonly container: SplitviewContainer;
+import { View } from './View';
 
-	/**
-	 * The dom of this split view, an element class is `sv-view`.
-	 */
-	readonly element: HTMLDivElement;
-
-	/**
-	 * The next view of this view.
-	 */
-	readonly nextSibling: SplitviewView;
-
-	/**
-	 * The previous view of this view.
-	 */
-	readonly previousSibling: SplitviewView;
-
-	/**
-	 * The size of view.
-	 *   - When direction === 'row' it is width.
-	 *   - When direction === 'column' it is height.
-	 */
-	readonly size: number;
-
-	/**
-	 * @param value - The size for trying to set.
-	 * @returns The final size
-	 */
-	setSize(value: number): number;
-
-	/**
-	 * The minimum size of a view.
-	 * @default 0
-	 */
-	min: number;
-
-	/**
-	 * The minimum size of a view.
-	 * @default screenWidth*4
-	 */
-	max: number;
-}
-
-interface SplitviewContainer {
+export interface Container {
 	/**
 	 * The direction of this splitview container. Can be `row` or `column`.
 	 * @defalut `row`
 	 */
 	direction: string;
-
-	/**
-	 * The container is resizing or not.
-	 */
-	readonly resizing: boolean;
 
 	/**
 	 * The dom of this split view, an element class is `sv-container`.
@@ -65,17 +15,17 @@ interface SplitviewContainer {
 	/**
 	 * The first view of this container.
 	 */
-	readonly firstView: SplitviewView;
+	readonly firstView: View;
 
 	/**
 	 * The last view of this container.
 	 */
-	readonly lastView: SplitviewView;
+	readonly lastView: View;
 
 	/**
 	 * Getting a new array of views from first to last.
 	 */
-	readonly viewList: SplitviewView[];
+	readonly views: Generator<View, void>;
 
 	/**
 	 * Creating a new view of this container.
@@ -83,7 +33,7 @@ interface SplitviewContainer {
 	 * @param options view options. `min === max` means unresizable.
 	 * @returns the created view
 	 */
-	createView(): SplitviewView;
+	createView(): View;
 
 	/**
 	 * Putting an owned view to the end of this container.
@@ -91,7 +41,7 @@ interface SplitviewContainer {
 	 * @param view - a split view
 	 * @returns the new view
 	 */
-	appendView(view: SplitviewView): SplitviewView;
+	appendView(view: View): View;
 
 	/**
 	 * Removing an owned view in the container.
@@ -99,7 +49,7 @@ interface SplitviewContainer {
 	 * @param view - a split view
 	 * @returns the new view
 	 */
-	removeView(view: SplitviewView): SplitviewView;
+	removeView(view: View): View;
 
 	/**
 	 * It inserts a view before a reference view as a child of this container.
@@ -109,7 +59,7 @@ interface SplitviewContainer {
 	 * null, then newView is inserted at the end of this container.
 	 * @returns the new view
 	 */
-	insertBefore(newView: SplitviewView, referenceView: SplitviewView): SplitviewView;
+	insertBefore(newView: View, referenceView: View): View;
 
 	/**
 	 * Appending the dom of this container to a specific element.
@@ -125,5 +75,3 @@ interface SplitviewContainer {
 	 */
 	destroy(): void;
 }
-
-export function Container(): SplitviewContainer;

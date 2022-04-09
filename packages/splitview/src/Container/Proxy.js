@@ -46,11 +46,11 @@ export class ContainerProxy {
 		_(this)[$.DIRECTION] = value;
 	}
 
-	get first() {
+	get firstView() {
 		return _(this)[$.VIEW_FIRST].$;
 	}
 
-	get last() {
+	get lastView() {
 		return _(this)[$.VIEW_LAST].$;
 	}
 

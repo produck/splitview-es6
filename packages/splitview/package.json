@@ -13,13 +13,18 @@
 		"access": "public"
 	},
 	"files": [
-		"lib"
+		"src",
+		"dist",
+		"types",
+		"index.js",
+		"style.css",
+		"tsconfig.json"
 	],
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/produck/splitview-es6.git"
 	},
-	"types": "index.d.ts",
+	"types": "types/index.d.ts",
 	"scripts": {
 		"clean": "rm -rf ./dist",
 		"build": "npm run clean && rollup --config script/rollup.config.js",
