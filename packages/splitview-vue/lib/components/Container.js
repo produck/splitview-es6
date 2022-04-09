@@ -20,7 +20,7 @@ export const ContainerComponent = {
 		}
 	},
 	beforeCreate() {
-		const container = this._container = Container();
+		const container = this._container = new Container();
 
 		container.element.addEventListener('container-size-change', event => {
 			event.stopPropagation();
