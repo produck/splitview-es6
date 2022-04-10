@@ -11,7 +11,7 @@
 	},
 	"scripts": {
 		"clean": "rm -rf ./dist",
-		"build": "npm run clean && rollup --config script/rollup.config.js",
+		"build": "eslint ./ && npm run clean && rollup --config script/rollup.config.js",
 		"prepublishOnly": "npm run build"
 	},
 	"main": "src/index.js",

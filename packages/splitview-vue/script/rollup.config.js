@@ -1,7 +1,6 @@
 import path from 'path';
 import { defineConfig } from 'rollup';
 import { terser } from 'rollup-plugin-terser';
-import eslint from '@rollup/plugin-eslint';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 const MODULE_NAME = 'splitview-vue';
@@ -39,13 +38,7 @@ const moduleList = [
 
 export default moduleList.map(config => {
 	const pluginList = [
-		nodeResolve(),
-		eslint({
-			throwOnError: true,
-			throwOnWarning: true,
-			include: ['src/**'],
-			exclude: ['node_modules/**']
-		}),
+		nodeResolve()
 	];
 
 	if (config.isUglify) {
