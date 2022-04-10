@@ -35,7 +35,13 @@ const createHeadRearViewPair = (container) => {
 
 const observer = new ResizeObserver(entries => {
 	for (const containerElement of entries) {
-		Reference._(containerElement.target)[$.RESET]();
+		const container = Reference._(containerElement.target);
+		const size = container[$.SIZE];
+
+		if (container[$.LAST_SIZE] !== size) {
+			container[$.LAST_SIZE] = size;
+			container[$.RESET]();
+		}
 	}
 });
 
@@ -65,6 +71,7 @@ export class ContainerContext {
 
 		this[$.AXIS] = NULL_AXIS;
 		this[$.DIRECTION] = 'row';
+		this[$.LAST_SIZE] = 0;
 	}
 
 	get [$.SIZE]() {
@@ -104,6 +111,7 @@ export class ContainerContext {
 		observer.observe(this[$.ELEMENT_VIEW_CONTAINER]);
 		Dom.appendChild(element, this[$.ELEMENT_VIEW_CONTAINER]);
 		this[$.RESET]();
+		this[$.LAST_SIZE] = this[$.SIZE];
 	}
 
 	[$.UNMOUNT]() {

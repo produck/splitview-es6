@@ -12,6 +12,8 @@ export const
 	VIEW_FIRST = 'f',
 	VIEW_LAST = 'l',
 
+	LAST_SIZE = 'i',
+
 	DIRECTION = 'd';
 
 // Methods
@@ -19,7 +21,7 @@ export const
 	MOUNT = 'M',
 	UNMOUNT = 'U',
 
-	INSERT = 'i',
+	INSERT = '_',
 	APPEND_VIEW = 'A',
 	REMOVE_VIEW = 'D',
 	INSERT_BEFORE = 'I',
