@@ -1,8 +1,19 @@
-import { WRAP_STYLE } from './utils';
+import { WRAP_STYLE } from './utils.js';
+import * as Ref from './reference.js';
+import { Type } from '@produck/charon';
 
 function isNotNaN(value) {
 	return !isNaN(Number(value));
 }
+
+const observer = new ResizeObserver(entries => {
+	for (const entry of entries) {
+		const viewComponent = Ref._V(entry.target);
+		const view = Ref._v(viewComponent);
+
+		viewComponent.$emit('input', view.size);
+	}
+});
 
 /**
  * @type {import('vue').ComponentOptions}
@@ -10,28 +21,11 @@ function isNotNaN(value) {
 export const ViewComponent = {
 	name: 'sv-view',
 	render(createElement) {
-		return createElement('div', {
-			style: WRAP_STYLE,
-		}, this.$slots.default);
-	},
-	computed: {
-		viewOptions() {
-			return {
-				min: Number(this.min),
-				max: Number(this.max)
-			};
-		},
-		isCollapsible() {
-			return typeof this.collapsible === 'boolean'
-				? this.collapsible
-				: typeof this.collapsible === 'string';
-		}
+		return createElement('div', { style: WRAP_STYLE, }, this.$slots.default);
 	},
 	watch: {
 		value(size) {
-			if (!this._view.container.resizing) {
-				this.setSize(Number(size));
-			}
+			this.setSize(Number(size));
 		}
 	},
 	methods: {
@@ -40,34 +34,41 @@ export const ViewComponent = {
 				throw new Error('A view size MUST be a number.');
 			}
 
-			const freeSize = this._view.setSize(value);
+			const view = Ref._v(this);
+			const freeSize = view.setSize(value);
 
-			this.$emit('input', this._view.size);
+			this.$emit('input', view.size);
 
 			return freeSize;
 		}
 	},
+	beforeMount() {
+		const view = Ref._c(this.$parent).createView();
+
+		Ref.set(this, view);
+		Ref.set(view.element, this);
+		observer.observe(view.element);
+	},
 	mounted() {
-		const view = this.$parent._container.createView(this.viewOptions);
+		const view = Ref._v(this);
 
-		view.element.addEventListener('view-size-change', () => {
-			this.$emit('input', view.size);
-			this.$emit('resize', view);
-		});
+		view.min = Number(this.min);
+		view.max = Number(this.max);
+		view.element.appendChild(this.$el);
+		Ref._c(this.$parent).appendView(view);
 
-		this._view = view;
-		this._view.element.appendChild(this.$el);
-		this.$parent._container.appendView(this._view);
-
-		if (this.init !== null) {
+		if (Type.Not.Null(this.init)) {
 			this.$nextTick(() => this.setSize(Number(this.init)));
 		}
 	},
 	destroyed() {
-		this.$parent._container.removeView(this._view);
+		const view = Ref._v(this);
+
+		Ref._c(this.$parent).removeView(view);
+		observer.unobserve(view.element);
 	},
 	beforeCreate() {
-		if (this.$parent.$options.name !== 'sv-container') {
+		if (!Ref._c(this.$parent)) {
 			throw new Error('A `sv-view` parent MUST be a `sv-container`.');
 		}
 	},
@@ -86,10 +87,6 @@ export const ViewComponent = {
 			type: [Number, String, null],
 			default: null,
 			validator: isNotNaN
-		},
-		collapsible: {
-			type: [Boolean, String],
-			default: false
 		},
 		value: {
 			type: [Number, String],

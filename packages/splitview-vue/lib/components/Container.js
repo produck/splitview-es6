@@ -1,5 +1,6 @@
 import { Container } from '@produck/splitview';
-import { WRAP_STYLE } from './utils';
+import { WRAP_STYLE } from './utils.js';
+import * as Ref from './reference.js';
 
 const DIRECTION_REG = /^(row|column)$/;
 
@@ -14,24 +15,6 @@ export const ContainerComponent = {
 		}, this.$slots.default);
 	},
 	name: 'sv-container',
-	computed: {
-		container() {
-			return this._container;
-		}
-	},
-	beforeCreate() {
-		const container = this._container = new Container();
-
-		container.element.addEventListener('container-size-change', event => {
-			event.stopPropagation();
-			this.$emit('resize', container);
-		});
-
-		container.element.addEventListener('request-reset', event => {
-			event.stopPropagation();
-			this.$emit('reset', container);
-		});
-	},
 	watch: {
 		direction() {
 			this.commitDirection();
@@ -39,23 +22,24 @@ export const ContainerComponent = {
 	},
 	methods: {
 		commitDirection() {
-			this._container.direction = this.direction;
+			Ref._c(this).direction = this.direction;
 		}
 	},
 	props: {
 		direction: {
 			type: String,
 			default: 'row',
-			validator(value) {
-				return DIRECTION_REG.test(value);
-			}
+			validator: value => DIRECTION_REG.test(value)
 		}
 	},
+	beforeMount() {
+		Ref.set(this, new Container());
+	},
 	mounted() {
-		this._container.mount(this.$el);
+		Ref._c(this).mount(this.$el);
 		this.commitDirection();
 	},
 	destroyed() {
-		this._container.destroy();
+		Ref._c(this).destroy();
 	}
 };

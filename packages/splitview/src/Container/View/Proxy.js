@@ -39,8 +39,8 @@ export class ViewProxy {
 	}
 
 	set min(value) {
-		if (!Type.isNumber(value) || value <= 0) {
-			Lang.Throw.TypeError('Invalid min, a number(>0) expected.');
+		if (!Type.isNumber(value) || value < 0) {
+			Lang.Throw.TypeError('Invalid min, a number(>=0) expected.');
 		}
 
 		const _this = _(this);

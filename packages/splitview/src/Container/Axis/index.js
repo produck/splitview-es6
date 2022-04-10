@@ -15,7 +15,6 @@ export const AXIS = {
 		[$.PROPERTY_SIZE]: 'offsetHeight',
 		[$.STYLE_SIZE]: 'height',
 		[$.STYLE_OFFSET]: 'top',
+		[$.CURSOR]: 'row-resize'
 	}
 };
-
-export const NULL_AXIS = {};

@@ -3,7 +3,7 @@ import { Dom } from '@produck/charon-browser';
 
 import * as View from './View/index.js';
 import * as Handler from './Handler/index.js';
-import { AXIS, NULL_AXIS } from './Axis/index.js';
+import { AXIS } from './Axis/index.js';
 import * as Reference from '../reference.js';
 import * as utils from './utils.js';
 
@@ -69,7 +69,7 @@ export class ContainerContext {
 
 		[this[$.VIEW_HEAD], this[$.VIEW_REAR]] = createHeadRearViewPair(this);
 
-		this[$.AXIS] = NULL_AXIS;
+		this[$.AXIS] = {}; /* as null axis */
 		this[$.DIRECTION] = 'row';
 		this[$.LAST_SIZE] = 0;
 	}
