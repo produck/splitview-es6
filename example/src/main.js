@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import App from './App.vue';
-import SplitviewPlugin from '../lib';
+import SplitviewPlugin from '@produck/splitview-vue';
 
 Vue.config.productionTip = false;
 Vue.use(SplitviewPlugin);

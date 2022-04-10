@@ -53,7 +53,7 @@ export default moduleList.map(config => {
 	}
 
 	return defineConfig({
-		input: path.resolve('lib/index.js'),
+		input: path.resolve('src/index.js'),
 		external: [],
 		output: {
 			file: config.output,

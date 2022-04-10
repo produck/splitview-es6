@@ -4,6 +4,7 @@ module.exports = {
 		"vetur.experimental.templateInterpolationService": true
 	},
 	projects: [
-		'./packages/splitview-vuew'
+		'./packages/splitview-vue',
+		'./example'
 	]
 }

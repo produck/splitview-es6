@@ -32,7 +32,7 @@
 				min="100"
 				max="400"
 				init="250"
-				collapsible
+				v-if="flag"
 			></sv-view>
 		</sv-container>
 	</sv-view>
@@ -45,6 +45,7 @@ export default {
 	name: 'App',
 	data() {
 		return {
+			flag: true,
 			panelSize: 200
 		};
 	}

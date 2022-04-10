@@ -1,8 +1,8 @@
 {
-  "packages": [
-    "packages/splitview",
+	"packages": [
+		"packages/splitview",
 		"packages/splitview-vue",
-		"packages/example"
-  ],
-  "version": "independent"
+		"example"
+	],
+	"version": "independent"
 }

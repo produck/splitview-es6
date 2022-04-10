@@ -1,4 +1,4 @@
-import { Container } from '@produck/splitview';
+import { Container } from '@produck/splitview/src/index.js';
 import { WRAP_STYLE } from './utils.js';
 import * as Ref from './reference.js';
 

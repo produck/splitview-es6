@@ -6,23 +6,24 @@
 		"name": "ChaosLee"
 	},
 	"vetur": {
-		"tags": "./lib/tags.json",
-		"attributes": "./lib/attributes.json"
+		"tags": "./src/tags.json",
+		"attributes": "./src/attributes.json"
 	},
 	"scripts": {
-		"serve": "vue-cli-service serve",
 		"clean": "rm -rf ./dist",
 		"build": "npm run clean && rollup --config script/rollup.config.js",
 		"prepublishOnly": "npm run build"
 	},
-	"main": "lib/index.js",
+	"main": "src/index.js",
 	"files": [
-		"lib",
-		"dist"
+		"src",
+		"dist",
+		"jsconfig.json"
 	],
 	"dependencies": {
 		"@produck/charon": "^0.2.2",
-		"@produck/splitview": "^0.2.0"
+		"@produck/splitview": "^0.2.0",
+		"vue": "^2.6.14"
 	},
 	"publishConfig": {
 		"access": "public"
@@ -30,18 +31,14 @@
 	"devDependencies": {
 		"@rollup/plugin-eslint": "^8.0.1",
 		"@rollup/plugin-node-resolve": "^13.1.3",
-		"@vue/cli-service": "^5.0.4",
 		"eslint": "^7.32.0",
-		"eslint-plugin-vue": "^7.20.0",
 		"rollup": "^2.70.1",
-		"rollup-plugin-terser": "^7.0.2",
-		"vue": "^2.6.14",
-		"vue-template-compiler": "^2.6.14"
+		"rollup-plugin-terser": "^7.0.2"
 	},
 	"bugs": {
-		"url": "https://github.com/produck/splitview-vue/issues"
+		"url": "https://github.com/produck/splitview-es6/issues"
 	},
-	"homepage": "https://github.com/produck/splitview-vue#readme",
+	"homepage": "https://github.com/produck/splitview-es6/tree/main/packages/splitview#readme",
 	"keywords": [
 		"vue",
 		"splitview"
@@ -49,6 +46,6 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/produck/splitview-vue.git"
+		"url": "git+https://github.com/produck/splitview-es6.git"
 	}
 }

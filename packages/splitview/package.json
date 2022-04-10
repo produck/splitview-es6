@@ -28,7 +28,8 @@
 	"scripts": {
 		"clean": "rm -rf ./dist",
 		"build": "npm run clean && rollup --config script/rollup.config.js",
-		"dev": "rollup --config script/rollup.config.dev.js --watch"
+		"dev": "rollup --config script/rollup.config.dev.js --watch",
+		"prepublishOnly": "npm run build"
 	},
 	"bugs": {
 		"url": "https://github.com/produck/splitview-es6/issues"
