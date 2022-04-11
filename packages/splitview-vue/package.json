@@ -1,6 +1,6 @@
 {
 	"name": "@produck/splitview-vue",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "A vue plugin of @produck/splitview.",
 	"author": {
 		"name": "ChaosLee"
@@ -22,7 +22,7 @@
 	],
 	"dependencies": {
 		"@produck/charon": "^0.2.2",
-		"@produck/splitview": "^0.2.1",
+		"@produck/splitview": "^0.2.2",
 		"vue": "^2.6.14"
 	},
 	"publishConfig": {

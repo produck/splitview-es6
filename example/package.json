@@ -1,13 +1,13 @@
 {
 	"name": "@produck/splitview-vue-example",
 	"private": true,
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"scripts": {
 		"serve": "vue-cli-service serve"
 	},
 	"main": "lib/index.js",
 	"devDependencies": {
-		"@produck/splitview-vue": "^0.2.0",
+		"@produck/splitview-vue": "^0.2.1",
 		"@vue/cli-service": "^5.0.4",
 		"eslint": "^7.32.0",
 		"eslint-plugin-vue": "^7.20.0",
