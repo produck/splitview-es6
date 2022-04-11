@@ -2,6 +2,7 @@ import path from 'path';
 import { defineConfig } from 'rollup';
 import { terser } from 'rollup-plugin-terser';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import alias from '@rollup/plugin-alias';
 
 const MODULE_NAME = 'splitview-vue';
 const BANNER =
@@ -38,6 +39,14 @@ const moduleList = [
 
 export default moduleList.map(config => {
 	const pluginList = [
+		alias({
+			entries: [
+				{
+					find: '@produck/splitview',
+					replacement: '@produck/splitview/src/index.js'
+				}
+			]
+		}),
 		nodeResolve()
 	];
 
