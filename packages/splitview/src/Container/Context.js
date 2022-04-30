@@ -1,4 +1,4 @@
-import { Console, Math, Type } from '@produck/charon';
+import { Console, Math, Type, Array } from '@produck/charon';
 import { Dom } from '@produck/charon-browser';
 
 import * as View from './View/index.js';
@@ -197,7 +197,7 @@ export class ContainerContext {
 				handler[$H.SET_RESIZABLE](false);
 			}
 		} else {
-			const handlerList = utils.ArrayFrom(headHandler[$H.SIBLINGS]());
+			const handlerList = Array.from(headHandler[$H.SIBLINGS]());
 			const record = new Map(handlerList.map(view => [view, true]));
 
 			for (const [views, handlerSide] of [

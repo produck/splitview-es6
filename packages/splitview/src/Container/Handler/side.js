@@ -1,6 +1,6 @@
 import * as $H from './symbol.js';
 import * as $V from '../View/symbol.js';
-import * as utils from '../utils.js';
+import { Array } from '@produck/charon';
 
 export const Direction = {
 	[$H.VIEW_PREVIOUS]: [$V.PREVIOUS],
@@ -8,7 +8,7 @@ export const Direction = {
 };
 
 const sum = (handler, side, property) => {
-	return utils.ArrayFrom(handler[side][$V.SIBLINGS](Direction[side]))
+	return Array.from(handler[side][$V.SIBLINGS](Direction[side]))
 		.reduce((sum, view) => sum + view[property], 0);
 };
 

@@ -71,8 +71,8 @@ export class ViewProxy {
 	}
 
 	setSize(value, side = 'next') {
-		if (!Type.isNumber(value) || value <= 0) {
-			Lang.Throw.TypeError('Invalid value, a number(>0) expected.');
+		if (!Type.isNumber(value) || value < 0) {
+			Lang.Throw.TypeError('Invalid value, a number(>=0) expected.');
 		}
 
 		if (!SideAccessor[side]) {
